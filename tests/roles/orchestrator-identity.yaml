@@ -1,0 +1,33 @@
+# Orchestrator Identity Test
+#
+# Confirms the orchestrator skill loads and correctly classifies intents.
+#
+# Run:
+#   goose run -i tests/roles/orchestrator-identity.yaml --output-format json
+
+name: orchestrator-identity
+description: Verify the orchestrator skill loads and classifies intents correctly
+steps:
+  - input: "Review PR #342"
+  - expect:
+      intent: code_review
+
+  - input: "What's the status of INC00421?"
+  - expect:
+      intent: ticket_lookup
+
+  - input: "Fix INC00421 and create a PR"
+  - expect:
+      intent: ticket_fix_pr
+
+  - input: "Is this SQL query vulnerable to injection?"
+  - expect:
+      intent: security_audit
+
+  - input: "Find the source of the login timeout"
+  - expect:
+      intent: code_explore
+
+  - input: "Hello, how are you?"
+  - expect:
+      intent: unknown

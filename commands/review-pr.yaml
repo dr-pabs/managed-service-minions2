@@ -1,0 +1,11 @@
+name: review-pr
+description: Review a pull request
+arguments:
+  - name: pr_number
+    type: integer
+    required: true
+    description: Pull request number to review
+  - name: repo
+    type: string
+    required: false
+    description: Repository in org/repo format (defaults to configured default repo)

@@ -1,0 +1,7 @@
+name: security-scan
+description: Scan a target for security vulnerabilities
+arguments:
+  - name: target
+    type: string
+    required: true
+    description: File, directory, or repository to scan

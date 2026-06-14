@@ -1,0 +1,30 @@
+{
+    "name": "goose-agent-framework",
+    "version": "0.1.0",
+    "description": "Multi-agent orchestration framework for the Goose platform. Classifies intents, delegates to specialist agents, enforces tool governance.",
+    "author": {
+        "name": "Goose Agent Framework Team"
+    },
+    "repository": "https://github.com/org/goose-agent-framework",
+    "license": "Apache-2.0",
+    "agents": "./agents/",
+    "skills": "./skills/",
+    "commands": "./commands/",
+    "rules": "./rules/",
+    "hooks": "./hooks/hooks.json",
+    "quality": {
+        "coverage_required": "100%",
+        "loop": "ralph-wiggum",
+        "loop_description": "If a test fails, code goes back to developer, gets fixed, tested again. Repeats until ALL tests pass. No skip button, no override, no merge anyway.",
+        "gates": {
+            "rust_lint": "cargo clippy --manifest-path mcp-servers/toolshed/Cargo.toml -- -D warnings",
+            "rust_test": "cargo test --manifest-path mcp-servers/toolshed/Cargo.toml",
+            "markdown_lint": "markdownlint '**/*.md'",
+            "yaml_lint": "yamllint .",
+            "shell_lint": "shellcheck hooks/*.sh",
+            "integration": "goose run -i tests/integration/walking-skeleton.md --output-format json",
+            "identity": "goose run -i tests/roles/*.md --output-format json"
+        },
+        "policy": "No code without tests. No merge without passing tests. No deployment without coverage gates."
+    }
+}

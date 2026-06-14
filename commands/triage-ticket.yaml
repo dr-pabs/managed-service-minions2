@@ -1,0 +1,7 @@
+name: triage-ticket
+description: Look up a ticket or incident status
+arguments:
+  - name: ticket_id
+    type: string
+    required: true
+    description: Ticket or incident ID (e.g., INC00421, TKT-123)

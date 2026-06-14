@@ -1,0 +1,24 @@
+{
+  "hooks": [
+    {
+      "event": "SessionStart",
+      "actions": [
+        {
+          "type": "command",
+          "command": "bash ${plugin_root}/hooks/session-start.sh",
+          "description": "Initialize correlation ID and session record"
+        }
+      ]
+    },
+    {
+      "event": "SessionEnd",
+      "actions": [
+        {
+          "type": "command",
+          "command": "bash ${plugin_root}/hooks/session-end.sh",
+          "description": "Write session journal entry"
+        }
+      ]
+    }
+  ]
+}
