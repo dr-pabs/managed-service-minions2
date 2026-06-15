@@ -63,6 +63,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install Goose
+        run: |
+          pipx install goose-cli
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
       - name: Orchestrator Identity
         run: goose run -i tests/roles/orchestrator-identity.md --output-format json --max-turns 15
 
@@ -76,6 +81,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install Goose
+        run: |
+          pipx install goose-cli
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Walking Skeleton
         run: goose run -i tests/integration/walking-skeleton.md --output-format json --max-turns 30
