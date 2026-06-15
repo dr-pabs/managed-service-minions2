@@ -62,6 +62,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install Goose CLI
+        run: curl -fsSL https://github.com/aaif-goose/goose/releases/download/stable/download_cli.sh | CONFIGURE=false bash
 
       - name: Install Goose
         run: |
@@ -69,10 +71,10 @@ jobs:
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Orchestrator Identity
-        run: goose run -i tests/roles/orchestrator-identity.md --output-format json --max-turns 15
+        run: ~/.local/bin/goose run -i tests/roles/orchestrator-identity.md --output-format json --max-turns 15
 
       - name: Code Reviewer Identity
-        run: goose run -i tests/roles/code-reviewer-identity.md --output-format json --max-turns 15
+        run: ~/.local/bin/goose run -i tests/roles/code-reviewer-identity.md --output-format json --max-turns 15
 
   # ── Walking Skeleton ───────────────────────────────────────────────────
 
@@ -81,6 +83,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install Goose CLI
+        run: curl -fsSL https://github.com/aaif-goose/goose/releases/download/stable/download_cli.sh | CONFIGURE=false bash
 
       - name: Install Goose
         run: |
@@ -88,7 +92,7 @@ jobs:
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Walking Skeleton
-        run: goose run -i tests/integration/walking-skeleton.md --output-format json --max-turns 30
+        run: ~/.local/bin/goose run -i tests/integration/walking-skeleton.md --output-format json --max-turns 30
 
   # ── Terraform Validation ──────────────────────────────────────────────
 
