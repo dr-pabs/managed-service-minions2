@@ -90,26 +90,26 @@ On allowlist denial:
 
 | Alert | Condition | Query |
 |---|---|---|
-| Orchestrator down | No heartbeat for 5 minutes | `ContainerAppConsoleLogs_CL \| where ContainerAppName_s == "ca-orchestrator-prod" \| where TimeGenerated > ago(5m) \| count == 0` |
-| 5xx error rate > 20% | Sustained for 5 minutes | `ContainerAppConsoleLogs_CL \| where ContainerAppName_s == "ca-orchestrator-prod" \| where Log_s contains "500" or Log_s contains "503" \| summarize count() by bin(TimeGenerated, 1m)` |
-| AI Foundry quota exhausted | Any throttling event | `AzureMetrics \| where MetricName == "ThrottledCalls" \| where TimeGenerated > ago(5m) \| summarize count() > 10` |
+| Orchestrator down | No heartbeat for 5 minutes | `ContainerAppConsoleLogs_CL \| where ContainerAppName_s == "ca-orchestrator-prod" \| where TimeGenerated > ago(5m) \| summarize Count=count() \| where Count == 0` |
+| 5xx error rate > 20% | Sustained for 5 minutes | `ContainerAppConsoleLogs_CL \| where ContainerAppName_s == "ca-orchestrator-prod" \| summarize Total=count(), Errors=countif(Log_s contains "500" or Log_s contains "503") by bin(TimeGenerated, 1m) \| extend ErrorRate = Errors * 100.0 / Total \| where ErrorRate > 20` |
+| AI Foundry quota exhausted | Any throttling event | `AzureMetrics \| where MetricName == "ThrottledCalls" \| where TimeGenerated > ago(5m) \| summarize Count=count() \| where Count > 10` |
 
 ### 2.2 P2 Alerts (30-minute response)
 
 | Alert | Condition | Query |
 |---|---|---|
-| Minion failure rate > 10% | Sustained for 15 minutes | `toolshed_logs_CL \| where result_s == "failure" \| summarize failure_rate = count() * 100.0 / count() by bin(TimeGenerated, 15m)` |
-| Minion timeout rate > 5% | Sustained for 15 minutes | `toolshed_logs_CL \| where result_s == "timeout" \| summarize count() by bin(TimeGenerated, 15m)` |
-| Service Bus dead-letter > 0 | Any dead-lettered message | `AzureMetrics \| where MetricName == "DeadletteredMessages" \| where TimeGenerated > ago(15m)` |
-| Container App restart loop | 3+ restarts in 10 minutes | `ContainerAppSystemLogs_CL \| where EventName_s == "ContainerRestart" \| summarize count() by bin(TimeGenerated, 10m)` |
+| Minion failure rate > 10% | Sustained for 15 minutes | `toolshed_logs_CL \| where TimeGenerated > ago(15m) \| summarize Total=count(), Failures=countif(result_s == "failure") by bin(TimeGenerated, 15m) \| extend FailureRate = Failures * 100.0 / Total \| where FailureRate > 10` |
+| Minion timeout rate > 5% | Sustained for 15 minutes | `toolshed_logs_CL \| where TimeGenerated > ago(15m) \| summarize Total=count(), Timeouts=countif(result_s == "timeout") by bin(TimeGenerated, 15m) \| extend TimeoutRate = Timeouts * 100.0 / Total \| where TimeoutRate > 5` |
+| Service Bus dead-letter > 0 | Any dead-lettered message | `AzureMetrics \| where MetricName == "DeadletteredMessages" \| where TimeGenerated > ago(15m) \| summarize Count=count() \| where Count > 0` |
+| Container App restart loop | 3+ restarts in 10 minutes | `ContainerAppSystemLogs_CL \| where EventName_s == "ContainerRestart" \| summarize Count=count() by bin(TimeGenerated, 10m) \| where Count >= 3` |
 
 ### 2.3 P3 Alerts (2-hour response)
 
 | Alert | Condition | Query |
 |---|---|---|
-| Allowlist denial detected | Any blocked call | `toolshed_logs_CL \| where result_s == "blocked" \| where TimeGenerated > ago(15m) \| count > 0` |
-| P95 latency exceed threshold | > 10s sustained for 15 minutes | `toolshed_logs_CL \| where result_s == "success" \| summarize percentile(duration_ms_d, 95) by bin(TimeGenerated, 5m)` |
-| Container CPU > 80% | Sustained for 10 minutes | `Perf \| where CounterName == "cpuUsageNanoCores" \| where TimeGenerated > ago(10m)` |
+| Allowlist denial detected | Any blocked call | `toolshed_logs_CL \| where result_s == "blocked" \| where TimeGenerated > ago(15m) \| summarize Count=count() \| where Count > 0` |
+| P95 latency exceed threshold | > 10s sustained for 15 minutes | `toolshed_logs_CL \| where result_s == "success" \| summarize P95=percentile(duration_ms_d, 95) by bin(TimeGenerated, 5m) \| where P95 > 10000` |
+| Container CPU > 80% | Sustained for 10 minutes | `Perf \| where CounterName == "cpuUsageNanoCores" \| where TimeGenerated > ago(10m) \| summarize AvgCPU=avg(CounterValue) by bin(TimeGenerated, 1m) \| where AvgCPU > 80` |
 | Cost anomaly detected | Daily spend > 2x rolling average | Azure Cost Management anomaly detection (built-in) |
 
 ---

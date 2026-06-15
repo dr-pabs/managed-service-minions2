@@ -42,7 +42,7 @@ resource "azurerm_container_app" "orchestrator" {
     traffic_weight {
       percentage      = 90                  # 90% to stable
       revision_suffix = "stable"
-      latest_revision = false
+      latest_revision = false  # Use specific revision name, not literal "latest"
     }
 
     traffic_weight {
@@ -82,7 +82,7 @@ az containerapp revision list -n $APP_NAME -g $RESOURCE_GROUP \
 echo "Promoting canary to 100%..."
 az containerapp ingress traffic set \
   -n $APP_NAME -g $RESOURCE_GROUP \
-  --revision-weight ${REVISION}=100
+  --revision-weight ${STABLE_REV}=100
 
 # 3. Verify
 echo "Verifying traffic split:"
@@ -178,7 +178,7 @@ ENV=${1:-staging}
 WINDOW=${2:-15}
 
 WORKSPACE_ID=$(az monitor log-analytics workspace show \
-  -g "rg-goosefw-${ENV}" -n "log-goosefw-${ENV}" \
+  -g "rg-goosefw-${ENV}" -n "la-goosefw-${ENV}" \
   --query customerId -o tsv)
 
 echo "=== Canary Gate Check: ${ENV} (last ${WINDOW}min) ==="
