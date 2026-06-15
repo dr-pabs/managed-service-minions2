@@ -66,16 +66,7 @@ ticket-analyst ──▶ code-explorer ──▶ pr-crafter ──▶ code-revie
                          (all spawn in parallel via async: true)
 ```
 
-### DAG Dispatch Logic
-
-1. **Identify stages.** Map the intent to its DAG definition.
-2. **Extract parameters for each stage.** Use the output of stage N as input to stage N+1.
-3. **Spawn parallel stages simultaneously.** Independent minions at the same depth run in parallel.
-4. **Track dependencies.** Each delegate returns a `TaskHandle`. Sequential stages wait for their dependencies via `load`.
-5. **Collect and validate.** After all stages complete, validate each output schema.
-6. **Synthesize final result.** Combine minion outputs into a unified response.
-
-### Example: `ticket_fix_pr` dispatch
+### DAG dispatch: `ticket_fix_pr` example
 
 ```
 // Stage 1: Look up the ticket
@@ -84,34 +75,32 @@ const ticketTask = delegate({
   parameters: { ticket_id: "INC00421" },
   extensions: ["toolshed"], max_turns: 10, async: true
 });
-
-// Stage 2: Explore affected code (waits for ticket context)
 const ticketResult = load({ source: ticketTask.taskId });
+
+// Stage 2: Explore affected code
 const exploreTask = delegate({
   source: "code-explorer",
   instructions: `Find files affected by: ${ticketResult.title} — ${ticketResult.description_summary}`,
   parameters: { query: ticketResult.description_summary },
   extensions: ["toolshed"], max_turns: 10, async: true
 });
-
-// Stage 3: Implement fix (waits for exploration results)
 const exploreResult = load({ source: exploreTask.taskId });
+
+// Stage 3: Implement fix
 const prTask = delegate({
   source: "pr-crafter",
   parameters: { ticket_id: "INC00421", repo: "org/repo" },
   instructions: `Affected files: ${exploreResult.findings.map(f => f.file).join(", ")}`,
   extensions: ["toolshed"], max_turns: 30, async: true
 });
-
-// Stage 4: Review the PR (waits for PR creation)
 const prResult = load({ source: prTask.taskId });
+
+// Stage 4: Review the PR
 const reviewTask = delegate({
   source: "code-reviewer",
   parameters: { pr_number: extractPrNumber(prResult.pr_url), repo: "org/repo" },
   extensions: ["toolshed"], max_turns: 20, async: true
 });
-
-// Collect review result
 const reviewResult = load({ source: reviewTask.taskId });
 
 return {
@@ -126,7 +115,7 @@ return {
 };
 ```
 
-### Parallel dispatch pattern (daily_review)
+### Parallel dispatch: `daily_review` example
 
 ```
 // Fan out to all open PRs in parallel
@@ -161,35 +150,28 @@ Failed minions are retried up to 3 times with exponential backoff:
 | 3 (retry) | 4 seconds |
 | 4 (retry) | 8 seconds |
 
-After 3 retries (4 total attempts), the minion is **dead-lettered** — the failure is logged and surfaced to the user. No further retries.
+After 3 retries (4 total attempts), the minion is **dead-lettered** — the failure is logged and surfaced to the user.
 
 ### Dead-Letter Handling
 
-A dead-lettered minion:
-1. Logs the failure with correlation ID, agent type, attempt count, and last error.
-2. Returns an error to the user with actionable context:
-   ```json
-   {
-     "status": "dead_lettered",
-     "agent": "code-reviewer",
-     "attempts": 4,
-     "last_error": "timeout after 10 minutes",
-     "suggestion": "The PR may be too large. Try reviewing individual files or reducing the diff scope."
-   }
-   ```
-3. If the dead-lettered minion is part of a DAG, downstream stages are skipped.
-4. If a parallel minion in the same DAG succeeds, that result is still returned.
+A dead-lettered minion returns an error with actionable context:
+```json
+{
+  "status": "dead_lettered",
+  "agent": "code-reviewer",
+  "attempts": 4,
+  "last_error": "timeout after 10 minutes",
+  "suggestion": "The PR may be too large. Try reviewing individual files or reducing the diff scope."
+}
+```
+
+If the dead-lettered minion is part of a DAG, downstream stages are skipped. If a parallel minion in the same DAG succeeds, that result is still returned.
 
 ### Timeout Handling
 
-Each minion has a wall-clock timeout. If exceeded:
-1. Call `interrupt_agent` (built-in orchestrator) to cancel the runaway.
-2. Treat as a failed attempt (counts toward retry limit).
-3. If all retries exhausted, dead-letter.
+Each minion has a wall-clock timeout. If exceeded: call `interrupt_agent` (built-in orchestrator) to cancel the runaway, treat as a failed attempt (counts toward retry limit), and if all retries exhausted, dead-letter.
 
 ## Structured Output Validation
-
-### Validation Rules by Agent
 
 The orchestrator validates a **minimal required-field and type-check** on every agent output before returning it. Full schema validation (all fields, enum values, nested structures) is the responsibility of each agent, defined in its `.agents/agents/<name>.md` file. The orchestrator's check is a fast gate — it catches missing required fields and wrong types, but relies on agents to self-enforce their complete output contracts.
 
@@ -201,14 +183,9 @@ The orchestrator validates a **minimal required-field and type-check** on every 
 | `ticket-analyst` | `ticket_id`, `system`, `title`, `status` | `system` ∈ {ado, jira}, `status` ∈ {open, in_progress, resolved, closed, blocked, reopened} |
 | `security-auditor` | `target`, `summary`, `findings`, `safe`, `total_findings` | `safe` (boolean), `total_findings` (integer) |
 
-> **Agent contract:** Each agent's complete output schema is defined in its agent `.md` file. See `.agents/agents/<name>.md` for all fields, their types, and optional/required status. The orchestrator's validation is a fast lane — agents are trusted to fulfill their full contract.
+> **Agent contract:** Each agent's complete output schema is defined in its agent `.md` file. See `.agents/agents/<name>.md` for all fields, their types, and optional/required status.
 
-### Validation on Failure
-
-If an agent returns invalid JSON:
-1. The output is treated as a failure.
-2. The attempt is counted toward the retry limit.
-3. The error message includes: `"invalid_output"` with the expected schema and the raw output.
+If an agent returns invalid JSON, the output is treated as a failure, the attempt is counted toward the retry limit, and the error message includes `"invalid_output"` with the expected schema and raw output.
 
 ## Control Plane
 
@@ -251,6 +228,6 @@ Use the built-in `orchestrator` extension for visibility:
   "status": "dead_lettered",
   "attempts": 4,
   "last_error": "timeout after 10 minutes",
-  "suggestion": "The PR may be too large. Try reviewing individual files."
+  "suggestion": "The PR may be too large. Try reviewing individual files or reducing the diff scope."
 }
 ```
