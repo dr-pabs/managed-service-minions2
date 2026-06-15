@@ -82,14 +82,16 @@ Plugins are the native packaging and distribution mechanism. One `goose plugin i
 
 | Component | Path convention | Purpose |
 |---|---|---|
-| **Skills** | `skills/<name>/SKILL.md` | Procedural knowledge — teaches goose a workflow |
-| **Agents** | `agents/<name>.md` | Sub-agent identity/role definitions loaded by `delegate` |
+| **Skills** | `.agents/skills/<name>/SKILL.md` | Procedural knowledge — teaches goose a workflow. Registered via plugin.json. |
+| **Agents** | `.agents/agents/<name>.md` | Sub-agent identity/role definitions loaded by `delegate`. Registered via plugin.json. |
 | **Commands** | `commands/<name>.yaml` | Slash commands invoked in goose sessions |
 | **Rules** | `rules/` | Standing orders governing behavior |
 | **Hooks** | `hooks/hooks.json` → shell scripts | Lifecycle triggers (SessionStart, SessionEnd) |
 | **Tests** | `tests/` | Integration and identity tests |
 
 **Manifest:** `.plugin/plugin.json` (or `plugin.json` at repo root):
+
+**Agent discovery:** Goose resolves agent sources from `.agents/agents/` (project-level) and `~/.agents/agents/` (global). Agents must be registered via `plugin.json` → `"agents": "./.agents/agents/"`. The `agents/` directory at repo root is not discoverable by `delegate`.
 
 ```json
 {

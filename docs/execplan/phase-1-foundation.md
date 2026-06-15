@@ -4,7 +4,7 @@ This ExecPlan is a living document. The sections **Progress**, **Surprises & Dis
 
 This document must be maintained in accordance with PLANS.md at `.agents/PLANS.md` in the repository root. The reader should treat this ExecPlan as the sole source of truth for the Phase 1 delivery — no prior context, memory, or external knowledge is assumed.
 
-> **Revision 4** (2026-06-14): Architecture corrected to target goose's native **plugin system** (`.plugin/plugin.json`, `skills/`, `agents/`, `commands/`, `hooks/`). One `goose plugin install` delivers the entire framework. Minions are agent definitions, not recipes. Orchestrator is a skill. Verified against `jezweb/office-town-plugin` (real `plugin.json` + `SKILL.md` + `hooks.json` examples).
+> **Revision 5** (2026-06-15): Corrected agent discovery path. Goose resolves agents from `.agents/agents/` (not `agents/`). `delegate({ source: "code-reviewer" })` confirmed working via live test. Plugin manifest corrected to `"agents": "./.agents/agents/"`. Test runner script (`tests/runner.sh`) executes all 4 gates in one command.
 
 ## Purpose / Big Picture
 
@@ -31,16 +31,17 @@ This is the "walking skeleton" — one end-to-end path that proves the architect
 
 ## Progress
 
-- [ ] Scaffold the plugin skeleton: `.plugin/plugin.json`, directory structure.
-- [ ] Write `skills/orchestrator/SKILL.md` — orchestration skill (classify → delegate → collect).
-- [ ] Write `agents/code-reviewer.md` — Code Reviewer sub-agent definition.
-- [ ] Write skeleton agents for other minion types (`code-explorer.md`, `pr-crafter.md`, `ticket-analyst.md`, `security-auditor.md`).
-- [ ] Write `commands/review-pr.yaml` — `/review-pr` slash command.
-- [ ] Write `hooks/hooks.json` + session lifecycle scripts (correlation ID, journal).
-- [ ] Scaffold the toolshed MCP server (`mcp-servers/toolshed/` — Rust, `rmcp`).
-- [ ] Write bot ACP clients (Slack, Teams) connecting to `goose serve`.
-- [ ] Write integration test (`tests/integration/walking-skeleton.yaml`).
-- [ ] Validate walking skeleton: `goose run -i tests/integration/walking-skeleton.yaml --output-format json`.
+- [x] Scaffold the plugin skeleton: `.plugin/plugin.json`, directory structure.
+- [x] Write `.agents/skills/orchestrator/SKILL.md` — orchestration skill (classify → delegate → collect).
+- [x] Write `.agents/agents/code-reviewer.md` — Code Reviewer sub-agent definition.
+- [x] Write skeleton agents for other minion types (`.agents/agents/`).
+- [x] Write `commands/review-pr.yaml` — `/review-pr` slash command.
+- [x] Write `hooks/hooks.json` + session lifecycle scripts (correlation ID, journal).
+- [x] Scaffold the toolshed MCP server (`mcp-servers/toolshed/` — Rust, `rmcp`).
+- [x] Write integration & identity tests + test runner (`tests/runner.sh`).
+- [x] Validate orchestrator identity (6/6 intents correct).
+- [x] Validate code-reviewer identity (9/9 assertions passed).
+- [x] Validate delegate spawn (`source: "code-reviewer"` resolved via `.agents/agents/`).
 
 ## Surprises & Discoveries
 
@@ -50,7 +51,7 @@ This is the "walking skeleton" — one end-to-end path that proves the architect
 
 - **2026-06-14 — Plugins are the native packaging mechanism.** `goose plugin install` delivers skills, agents, commands, rules, hooks, and tests as a single unit. Verified against `jezweb/office-town-plugin` v0.5.3. Replaces every assumption about standalone file layouts, manual `mkdir`, and multi-tier installation.
 
-- **2026-06-14 — `goose run` is the test/execution primitive.** `goose run -i` with instruction files, `goose run --recipe` with parameters, `goose run -t` for inline text. Provides structured, repeatable integration tests without shell scripts. No separate test runner needed.
+- **2026-06-14 — `goose run` is the test/execution primitive.** `goose run -i` with instruction files, `goose run --recipe` with parameters, `goose run -t` for inline text. Provides structured, repeatable integration tests. A unified test runner (`tests/runner.sh`) executes all 4 gates in one command.
 
 - **2026-06-14 — `goose serve` provides the HTTP/WebSocket bridge.** Starts goose as a persistent ACP server on `127.0.0.1:3284` by default. Bot adapters are thin ACP clients connecting over WebSocket, not standalone webhook servers with custom MCP tool calling.
 
@@ -75,6 +76,8 @@ This is the "walking skeleton" — one end-to-end path that proves the architect
 - **2026-06-14 — `platform__manage_schedule` does NOT exist as a tool in goose 1.37.0.** Listed in our `goose-capabilities-and-usage.md` as a cron scheduling primitive for Phase 4. Verified by listing all 17 available tools — absent. Scheduling is the `goose schedule` CLI command instead. Phase 4 must use the CLI, not a tool.
 
 - **2026-06-14 — `apps__create_app` and `extensionmanager__*` tools are available.** The Apps extension provides dashboard scaffolding (`create_app`, `delete_app`, `iterate_app`, `list_apps`). Extension Manager provides `manage_extensions`, `search_available_extensions`, `list_resources`, `read_resource`. Both relevant for Phase 4 but available now.
+
+- **2026-06-14 — Goose discovers agent sources from `.agents/agents/`, not `agents/`.** `delegate({ source: "code-reviewer" })` failed with `Source 'code-reviewer' not found` until agents were copied to `.agents/agents/`. The plugin must register `"agents": "./.agents/agents/"` in `plugin.json`. The `agents/` directory at repo root is invisible to delegate.
 
 ### Design corrections (from real goose source)
 
@@ -128,8 +131,8 @@ Verified against `jezweb/office-town-plugin` v0.5.3 and `goose info` output:
     "name": "goose-agent-framework",
     "version": "0.1.0",
     "description": "Multi-agent orchestration framework for the Goose platform",
-    "agents": "./agents/",
-    "skills": "./skills/",
+    "agents": "./.agents/agents/",
+    "skills": "./.agents/skills/",
     "commands": "./commands/",
     "rules": "./rules/",
     "hooks": "./hooks/hooks.json"
@@ -414,17 +417,17 @@ goose plugin list | grep goose-agent-framework
 ### Step 2: Code Reviewer agent
 
 ```sh
-# Create agents/code-reviewer.md (see Artifacts)
+# Create .agents/agents/code-reviewer.md (see Artifacts)
 # Create skeleton agents
-# Create agents/code-explorer.md agents/pr-crafter.md
-# Create agents/ticket-analyst.md agents/security-auditor.md
+# Create .agents/agents/code-explorer.md .agents/agents/pr-crafter.md
+# Create .agents/agents/ticket-analyst.md .agents/agents/security-auditor.md
 # Each with placeholder role descriptions
 ```
 
 ### Step 3: Orchestrator skill
 
 ```sh
-# Create skills/orchestrator/SKILL.md (see Artifacts)
+# Create .agents/skills/orchestrator/SKILL.md (see Artifacts)
 ```
 
 ### Step 4: Slash commands
@@ -554,8 +557,8 @@ rm -rf bots/
     },
     "repository": "https://github.com/org/goose-agent-framework",
     "license": "Apache-2.0",
-    "agents": "./agents/",
-    "skills": "./skills/",
+    "agents": "./.agents/agents/",
+    "skills": "./.agents/skills/",
     "commands": "./commands/",
     "rules": "./rules/",
     "hooks": "./hooks/hooks.json"
@@ -812,15 +815,16 @@ steps:
 goose-agent-framework/                  ← Plugin root (git repo)
 ├── .plugin/
 │   └── plugin.json                     ← Manifest
-├── skills/
-│   └── orchestrator/
-│       └── SKILL.md                    ← Orchestrator skill
-├── agents/
-│   ├── code-reviewer.md                ← Code Reviewer agent
-│   ├── code-explorer.md                ← Code Explorer (skeleton)
-│   ├── pr-crafter.md                   ← PR Crafter (skeleton)
-│   ├── ticket-analyst.md               ← Ticket Analyst (skeleton)
-│   └── security-auditor.md             ← Security Auditor (skeleton)
+├── .agents/
+│   ├── skills/
+│   │   └── orchestrator/
+│   │       └── SKILL.md                ← Orchestrator skill
+│   └── agents/
+│       ├── code-reviewer.md            ← Code Reviewer agent
+│       ├── code-explorer.md            ← Code Explorer (skeleton)
+│       ├── pr-crafter.md               ← PR Crafter (skeleton)
+│       ├── ticket-analyst.md           ← Ticket Analyst (skeleton)
+│       └── security-auditor.md         ← Security Auditor (skeleton)
 ├── commands/
 │   ├── review-pr.yaml                  ← /review-pr slash command
 │   ├── triage-ticket.yaml              ← /triage-ticket (skeleton)
