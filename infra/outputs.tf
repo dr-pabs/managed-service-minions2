@@ -59,12 +59,12 @@ output "storage_account_primary_blob_endpoint" {
 
 output "ai_foundry_endpoint" {
   description = "AI Foundry endpoint"
-  value       = azurerm_ai_services.foundry.endpoint
+  value       = azurerm_cognitive_account.foundry.endpoint
 }
 
 output "ai_foundry_key" {
   description = "AI Foundry key (sensitive)"
-  value       = azurerm_ai_services.foundry.primary_access_key
+  value       = azurerm_cognitive_account.foundry.primary_access_key
   sensitive   = true
 }
 

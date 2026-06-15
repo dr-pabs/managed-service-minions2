@@ -1,8 +1,8 @@
 # ── Dev Environment ─────────────────────────────────────────────────────────
 # Terraform plan -var-file=environments/dev.tfvars
 
-environment          = "dev"
-location             = "uksouth"
+environment                = "dev"
+location                   = "uksouth"
 container_apps_environment = "Consumption"
 
 # Scale to zero in dev
@@ -48,8 +48,8 @@ model_deployments = {
 log_retention_days = 7
 
 # Container registry
-acr_name   = "stgoosefwdev"
-image_tag  = "latest"
+acr_name  = "stgoosefwdev"
+image_tag = "latest"
 
 # AI Foundry endpoint (set at plan time or via env)
 ai_foundry_endpoint = "https://foundry-goosefw-dev.openai.azure.com"

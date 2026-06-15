@@ -1,8 +1,8 @@
 # ── Production Environment ──────────────────────────────────────────────────
 # Terraform plan -var-file=environments/prod.tfvars
 
-environment          = "prod"
-location             = "uksouth"
+environment                = "prod"
+location                   = "uksouth"
 container_apps_environment = "Consumption"
 
 # Always-on in production
@@ -48,8 +48,8 @@ model_deployments = {
 log_retention_days = 31
 
 # Container registry
-acr_name   = "stgoosefwprod"
-image_tag  = "latest"
+acr_name  = "stgoosefwprod"
+image_tag = "latest"
 
 ai_foundry_endpoint = "https://foundry-goosefw-prod.openai.azure.com"
 

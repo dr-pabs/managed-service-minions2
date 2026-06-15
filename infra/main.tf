@@ -1,8 +1,8 @@
 # ── Resource Naming ─────────────────────────────────────────────────────────
 
 locals {
-  rg_name  = "rg-${var.naming_prefix}-${var.environment}"
-  env      = var.environment
+  rg_name = "rg-${var.naming_prefix}-${var.environment}"
+  env     = var.environment
 
   # Scale-to-zero in dev, warm in staging, always-on in prod
   scale_config = {
@@ -63,7 +63,7 @@ resource "azurerm_container_app" "orchestrator" {
       memory = var.orchestrator_memory
 
       env {
-        name  = "GOOSE_SERVER__SECRET_KEY"
+        name        = "GOOSE_SERVER__SECRET_KEY"
         secret_name = "goose-server-secret-key"
       }
       env {
@@ -86,6 +86,11 @@ resource "azurerm_container_app" "orchestrator" {
     external_enabled           = true
     target_port                = 3284
     transport                  = "http"
+
+    traffic_weight {
+      percentage      = 100
+      latest_revision = true
+    }
   }
 
   registry {
@@ -115,15 +120,15 @@ resource "azurerm_container_app" "slack_bot" {
         value = "https://${azurerm_container_app.orchestrator.latest_revision_fqdn}:3284"
       }
       env {
-        name  = "GOOSE_SERVER__SECRET_KEY"
+        name        = "GOOSE_SERVER__SECRET_KEY"
         secret_name = "goose-server-secret-key"
       }
       env {
-        name  = "SLACK_BOT_TOKEN"
+        name        = "SLACK_BOT_TOKEN"
         secret_name = "slack-bot-token"
       }
       env {
-        name  = "SLACK_SIGNING_SECRET"
+        name        = "SLACK_SIGNING_SECRET"
         secret_name = "slack-signing-secret"
       }
     }
@@ -134,6 +139,11 @@ resource "azurerm_container_app" "slack_bot" {
     external_enabled           = true
     target_port                = 3000
     transport                  = "http"
+
+    traffic_weight {
+      percentage      = 100
+      latest_revision = true
+    }
   }
 
   registry {
@@ -163,15 +173,15 @@ resource "azurerm_container_app" "teams_bot" {
         value = "https://${azurerm_container_app.orchestrator.latest_revision_fqdn}:3284"
       }
       env {
-        name  = "GOOSE_SERVER__SECRET_KEY"
+        name        = "GOOSE_SERVER__SECRET_KEY"
         secret_name = "goose-server-secret-key"
       }
       env {
-        name  = "AZURE_AD_CLIENT_ID"
+        name        = "AZURE_AD_CLIENT_ID"
         secret_name = "teams-azure-ad-client-id"
       }
       env {
-        name  = "AZURE_AD_TENANT_ID"
+        name        = "AZURE_AD_TENANT_ID"
         secret_name = "teams-azure-ad-tenant-id"
       }
     }
@@ -182,6 +192,11 @@ resource "azurerm_container_app" "teams_bot" {
     external_enabled           = true
     target_port                = 3000
     transport                  = "http"
+
+    traffic_weight {
+      percentage      = 100
+      latest_revision = true
+    }
   }
 
   registry {
@@ -201,17 +216,16 @@ resource "azurerm_servicebus_namespace" "main" {
 }
 
 resource "azurerm_servicebus_topic" "minion_tasks" {
-  name                = "minion-tasks"
-  namespace_id        = azurerm_servicebus_namespace.main.id
-  enable_partitioning = true
+  name         = "minion-tasks"
+  namespace_id = azurerm_servicebus_namespace.main.id
 }
 
 resource "azurerm_servicebus_subscription" "minions" {
   for_each = toset(var.minion_types)
 
-  name                = each.key
-  topic_id            = azurerm_servicebus_topic.minion_tasks.id
-  max_delivery_count  = 3
+  name               = each.key
+  topic_id           = azurerm_servicebus_topic.minion_tasks.id
+  max_delivery_count = 3
 
   # Filter: route to correct minion by correlation property
   client_scoped_subscription_enabled = false
@@ -278,10 +292,11 @@ resource "azurerm_user_assigned_identity" "acr_pull" {
 
 # ── AI Foundry Hub ──────────────────────────────────────────────────────────
 
-resource "azurerm_ai_services" "foundry" {
+resource "azurerm_cognitive_account" "foundry" {
   name                = "foundry-${var.naming_prefix}-${local.env}"
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
+  kind                = "AIServices"
   sku_name            = var.ai_foundry_sku
   tags                = var.tags
 }
@@ -292,7 +307,7 @@ resource "azurerm_cognitive_deployment" "models" {
   for_each = var.model_deployments
 
   name                 = each.key
-  cognitive_account_id = azurerm_ai_services.foundry.id
+  cognitive_account_id = azurerm_cognitive_account.foundry.id
 
   model {
     format  = "OpenAI"
@@ -300,8 +315,8 @@ resource "azurerm_cognitive_deployment" "models" {
     version = each.value.model_version
   }
 
-  scale {
-    type     = "Standard"
+  sku {
+    name     = "Standard"
     capacity = each.value.capacity
   }
 }

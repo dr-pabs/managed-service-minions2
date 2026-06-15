@@ -1,8 +1,8 @@
 # ── Staging Environment ─────────────────────────────────────────────────────
 # Terraform plan -var-file=environments/staging.tfvars
 
-environment          = "staging"
-location             = "uksouth"
+environment                = "staging"
+location                   = "uksouth"
 container_apps_environment = "Consumption"
 
 # Warm replica in staging
@@ -48,8 +48,8 @@ model_deployments = {
 log_retention_days = 31
 
 # Container registry
-acr_name   = "stgoosefwstaging"
-image_tag  = "latest"
+acr_name  = "stgoosefwstaging"
+image_tag = "latest"
 
 ai_foundry_endpoint = "https://foundry-goosefw-staging.openai.azure.com"
 
