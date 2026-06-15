@@ -1,9 +1,9 @@
 # Agent Build Team Overview
 
-> Date: 2026-06-06  
+> Date: 2026-06-06\
 > Purpose: Explain how the Goose agent framework operates, how its harness works, and how to get the best results from working with the agent build team.
 
----
+______________________________________________________________________
 
 ## 1. What this system is
 
@@ -16,7 +16,7 @@ This platform is not just a chatbot or a single assistant. It is a multi-agent d
 
 In short, the system is designed to help a team of agents collaborate on real engineering work rather than relying on one generic agent to do everything.
 
----
+______________________________________________________________________
 
 ## 2. Core capabilities of the agent harness
 
@@ -28,8 +28,8 @@ The Goose harness provides the runtime foundations. The framework then builds on
 - load(taskId): collects async delegate results and status
 - sessions: preserves conversation and workflow state
 - extensions: packages tools, prompts, and behaviors into reusable units
-- platform__manage_schedule: supports cron-driven recurring tasks
-- apps__create_app: provides a path for dashboard and UI extension generation
+- platform\_\_manage_schedule: supports cron-driven recurring tasks
+- apps\_\_create_app: provides a path for dashboard and UI extension generation
 
 These are the base building blocks. The framework adds the orchestration, governance, and integrations around them.
 
@@ -38,27 +38,34 @@ These are the base building blocks. The framework adds the orchestration, govern
 The actual delivery system adds the following layers:
 
 1. Intent classification and routing
+
    - Understands the user’s request and decides which minion path to use.
 
-2. Task decomposition and DAG execution
+1. Task decomposition and DAG execution
+
    - Breaks complex requests into parallel and dependent steps.
 
-3. Minion lifecycle management
+1. Minion lifecycle management
+
    - Spawns, monitors, retries, and terminates delegates safely.
 
-4. Tool governance
+1. Tool governance
+
    - Enforces allowlists, rate limits, path scoping, and logging.
 
-5. Human approval gates
+1. Human approval gates
+
    - Prevents destructive actions from being executed without explicit approval.
 
-6. Observability and auditability
+1. Observability and auditability
+
    - Captures tool traces, session history, status, and performance data.
 
-7. Azure deployment and operations
+1. Azure deployment and operations
+
    - Runs in Container Apps, uses Service Bus, Storage, Key Vault, AI Foundry, and Log Analytics.
 
----
+______________________________________________________________________
 
 ## 3. How the agent build team works
 
@@ -92,36 +99,40 @@ This division of labor is important because the system is multi-layered. The run
 The build team typically works in phases:
 
 1. Foundation
+
    - Start with the runtime primitives and core extensions.
 
-2. Minion framework
+1. Minion framework
+
    - Build the specialist agents and their prompt contracts.
 
-3. Ticket and review workflows
+1. Ticket and review workflows
+
    - Connect ServiceNow, Azure DevOps, GitHub, and review flows.
 
-4. Platform hardening
+1. Platform hardening
+
    - Add infra, dashboards, observability, and production controls.
 
 This phased approach helps avoid building a fragile system all at once.
 
----
+______________________________________________________________________
 
 ## 4. How the harness behaves in practice
 
 A typical session follows this path:
 
 1. A user sends a request through Slack or Teams.
-2. The bot ingress layer receives the message.
-3. The orchestrator classifies the request and builds a work plan.
-4. Specialist minions are spawned as delegates.
-5. Minions call the shared toolshed for approved actions.
-6. Results are collected, validated, and summarized.
-7. The user receives a structured answer, and the run is recorded for audit and debugging.
+1. The bot ingress layer receives the message.
+1. The orchestrator classifies the request and builds a work plan.
+1. Specialist minions are spawned as delegates.
+1. Minions call the shared toolshed for approved actions.
+1. Results are collected, validated, and summarized.
+1. The user receives a structured answer, and the run is recorded for audit and debugging.
 
 This means the framework can handle complex tasks by decomposing them into a small set of focused actions instead of asking one agent to reason across everything at once.
 
----
+______________________________________________________________________
 
 ## 5. What makes the harness valuable
 
@@ -141,7 +152,7 @@ Independent parts of a task can run concurrently. This is especially useful for 
 
 The dashboard, correlation tree, and logs let operators inspect what happened, where it failed, and how to retry or recover.
 
----
+______________________________________________________________________
 
 ## 6. How to get the most out of working with the agent build team
 
@@ -196,7 +207,7 @@ When working with the agent team, ask for:
 
 This is one of the biggest advantages of the framework.
 
----
+______________________________________________________________________
 
 ## 7. What to expect from the build team
 
@@ -211,20 +222,20 @@ When you work with this system, expect the build team to:
 
 The goal is not only to answer questions, but to create a reliable operating model for ongoing agent-driven delivery.
 
----
+______________________________________________________________________
 
 ## 8. Recommended working style
 
 To get the highest value from the platform:
 
 1. Start with one concrete workflow, not a broad ambition.
-2. Define success criteria before implementation.
-3. Make the tool boundaries explicit.
-4. Review the prompt and integration quality early.
-5. Use the dashboard and observability views to debug and improve behavior.
-6. Measure outcomes and iterate based on real evidence.
+1. Define success criteria before implementation.
+1. Make the tool boundaries explicit.
+1. Review the prompt and integration quality early.
+1. Use the dashboard and observability views to debug and improve behavior.
+1. Measure outcomes and iterate based on real evidence.
 
----
+______________________________________________________________________
 
 ## 9. Summary
 

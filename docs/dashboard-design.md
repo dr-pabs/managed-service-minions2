@@ -1,10 +1,10 @@
 # Dashboard Design — Agent Dashboard Extension (Phase 4)
 
-> **Date:** 2026-06-06  
-> **Status:** Draft  
+> **Date:** 2026-06-06\
+> **Status:** Draft\
 > **Complements:** ADR-018 (Observability), `logical-architecture.md` §15
 
----
+______________________________________________________________________
 
 ## Overview
 
@@ -26,11 +26,12 @@ The custom `agent-dashboard` is a Goose extension (built via `apps__create_app`)
 
 **Always visible header:** Correlation ID search bar. Paste any `corr_` ID and jump directly to that session's tree view.
 
----
+______________________________________________________________________
 
 ## View 1: Session Explorer
 
 ### Purpose
+
 Search and browse all orchestration sessions. Entry point for debugging and auditing.
 
 ### Wireframe
@@ -67,15 +68,17 @@ Search and browse all orchestration sessions. Entry point for debugging and audi
 ```
 
 ### Interaction
+
 - Click any session row → navigates to **Correlation Tree** for that session.
 - Failed sessions highlighted in red; click to see error details and retry options.
 - Filter by channel, user, intent, status, or date range.
 
----
+______________________________________________________________________
 
 ## View 2: Correlation Tree (Per-Session Drill-Down)
 
 ### Purpose
+
 Visualize the full execution DAG for a single session. Every minion and every tool call, color-coded by status.
 
 ### Wireframe
@@ -153,17 +156,19 @@ Visualize the full execution DAG for a single session. Every minion and every to
 ```
 
 ### Interaction
+
 - **Click any minion node** → right panel shows: system prompt used, full instructions, structured JSON output, token consumption.
 - **Click any tool call node** → right panel shows: full parameters (from Table Storage), result summary (first 1KB), full result link (Blob), latency.
 - **Hover** shows quick stats: turns used, tokens consumed, duration.
 - **Retry Failed** re-enqueues the failed minion with the same correlation ID (incremented attempt counter).
 - **Export as JSON** dumps the full trace for offline analysis.
 
----
+______________________________________________________________________
 
 ## View 3: Live Minion Status
 
 ### Purpose
+
 Real-time view of all currently running minions. Operator can monitor progress and cancel stuck minions.
 
 ### Wireframe
@@ -199,15 +204,17 @@ Real-time view of all currently running minions. Operator can monitor progress a
 ```
 
 ### Interaction
+
 - Progress bar = `current_turn / max_turns`. Approaches 100% → may time out.
 - **Cancel** terminates the delegate (via Goose's delegate cancellation, if supported) and marks the run as `cancelled`.
 - **View Session** jumps to that minion's parent session in the Correlation Tree.
 
----
+______________________________________________________________________
 
 ## View 4: Tool Call Inspector
 
 ### Purpose
+
 Search, filter, and inspect all tool calls across all sessions. Audit and debugging.
 
 ### Wireframe
@@ -257,11 +264,12 @@ Search, filter, and inspect all tool calls across all sessions. Audit and debugg
 └─────────────────────────────────────────────────────────────┘
 ```
 
----
+______________________________________________________________________
 
 ## View 5: Prompt Viewer
 
 ### Purpose
+
 Inspect the system prompt for each minion type. See version history. Understand what the minion is told.
 
 ### Wireframe
@@ -306,11 +314,12 @@ Inspect the system prompt for each minion type. See version history. Understand 
 └─────────────────────────────────────────────────────────────┘
 ```
 
----
+______________________________________________________________________
 
 ## View 6: Governance Configuration
 
 ### Purpose
+
 View and edit the governance rules. Changes are validated in-browser and proposed as PRs to the framework repo.
 
 ### Wireframe
@@ -364,17 +373,18 @@ View and edit the governance rules. Changes are validated in-browser and propose
 ```
 
 ### Interaction
+
 - All changes are validated in-browser against the governance schema.
 - Destructive relaxations (removing an approval requirement) trigger a confirmation dialog.
 - **Propose Changes as PR** creates a branch + PR in the framework repo with the diff. Human review and merge required before changes take effect (ADR-013).
 - View only mode shows the currently deployed config.
 
----
+______________________________________________________________________
 
 ## UX Principles
 
 1. **Correlation ID is the universal key.** Every view can be reached from a correlation ID. "Paste a `corr_` ID and go."
-2. **Color coding is consistent.** Green = success, yellow = warning/timeout, red = failure/blocked. Same palette as the correlation tree in all views.
-3. **Progressive disclosure.** Session list → correlation tree → minion detail → tool call detail. Drill down; never show everything at once.
-4. **Read-only by default.** The dashboard is an observability tool. Writes (retry, cancel, config change) require explicit action.
-5. **Exportable.** Every view can export data as JSON for offline analysis or sharing.
+1. **Color coding is consistent.** Green = success, yellow = warning/timeout, red = failure/blocked. Same palette as the correlation tree in all views.
+1. **Progressive disclosure.** Session list → correlation tree → minion detail → tool call detail. Drill down; never show everything at once.
+1. **Read-only by default.** The dashboard is an observability tool. Writes (retry, cancel, config change) require explicit action.
+1. **Exportable.** Every view can export data as JSON for offline analysis or sharing.

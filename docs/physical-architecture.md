@@ -1,25 +1,25 @@
 # Physical Architecture Design
 
-> **Date:** 2026-06-15  
-> **Status:** Updated for Phase 1 build discoveries  
+> **Date:** 2026-06-15\
+> **Status:** Updated for Phase 1 build discoveries\
 > **Complements:** [logical-architecture.md](./logical-architecture.md), [azure-architecture.md](./azure-architecture.md)
 
----
+______________________________________________________________________
 
 ## Table of Contents
 
 1. [Design Principles](#design-principles)
-2. [Compute Sizing](#compute-sizing)
-3. [Networking Design](#networking-design)
-4. [Storage Layout](#storage-layout)
-5. [Messaging Throughput](#messaging-throughput)
-6. [Identity & Access](#identity--access)
-7. [High Availability](#high-availability)
-8. [Disaster Recovery](#disaster-recovery)
-9. [Scaling Model](#scaling-model)
-10. [Cost Model](#cost-model)
+1. [Compute Sizing](#compute-sizing)
+1. [Networking Design](#networking-design)
+1. [Storage Layout](#storage-layout)
+1. [Messaging Throughput](#messaging-throughput)
+1. [Identity & Access](#identity--access)
+1. [High Availability](#high-availability)
+1. [Disaster Recovery](#disaster-recovery)
+1. [Scaling Model](#scaling-model)
+1. [Cost Model](#cost-model)
 
----
+______________________________________________________________________
 
 ## Design Principles
 
@@ -32,7 +32,7 @@
 | **Right-size, not over-provision** | Start small. Scale with usage data. No pre-provisioned capacity beyond AI Foundry PTU (optional). |
 | **Immutable infrastructure** | All resources defined in Bicep. Deployed via GitHub Actions. No ClickOps. |
 
----
+______________________________________________________________________
 
 ## Compute Sizing
 
@@ -86,6 +86,7 @@ flowchart LR
     style q_empty fill:#d6eaf8,stroke:#7fb3d8,color:#1a1a1a
     style keda fill:#d5f5e3,stroke:#82c091,color:#1a1a1a
 ```
+
 - Dedicated plan minimum: ~$150/month for always-warm workers
 - Consumption plan: pay per-second for active containers, scale-to-zero
 - Orchestrator CPU bound only during intent classification and response synthesis — seconds per session
@@ -106,7 +107,7 @@ gooseframework.azurecr.io/orchestrator:latest
 └── SQLite: /data/goose-sessions.db
 ```
 
----
+______________________________________________________________________
 
 ## Networking Design
 
@@ -183,7 +184,7 @@ All service-to-service traffic flows through private endpoints, resolving to pri
 
 Not needed in initial scope. Container Apps provides DDoS protection at the platform level. Bot endpoints are authenticated (Slack signing secret, Teams Bot Framework auth). No sensitive data is exposed on public endpoints.
 
----
+______________________________________________________________________
 
 ## Storage Layout
 
@@ -260,12 +261,12 @@ Recovery: On container start, check Blob for latest backup. Restore if present.
 |---|---|---|---|
 | Table Storage (tool calls) | ~1 MB/month | ~10 MB/month | ~100 MB/month |
 | Blob Storage (outputs) | ~50 MB/month | ~500 MB/month | ~5 GB/month |
-| SQLite | <10 MB | <50 MB | <200 MB (rotate with backup) |
+| SQLite | \<10 MB | \<50 MB | \<200 MB (rotate with backup) |
 | Log Analytics ingestion | ~100 MB/month | ~1 GB/month | ~10 GB/month |
 
 All well within free/cheapest tier limits.
 
----
+______________________________________________________________________
 
 ## Messaging Throughput
 
@@ -289,7 +290,7 @@ All well within free/cheapest tier limits.
 
 **Duplicate detection:** Enabled per topic. Prevents double-dispatch if the orchestrator retries a `send`.
 
----
+______________________________________________________________________
 
 ## Identity & Access
 
@@ -367,7 +368,7 @@ graph LR
 | GitHub OIDC | Container Registry | AcrPush |
 | GitHub OIDC | Container Apps | Contributor (for deployments) |
 
----
+______________________________________________________________________
 
 ## High Availability
 
@@ -438,12 +439,12 @@ graph TB
 
 | Scenario | RTO | RPO |
 |---|---|---|
-| Single orchestrator replica crash | <30 seconds (new replica spawns, loads SQLite from Blob) | <15 minutes (last WAL backup) |
-| All orchestrator replicas crash | <2 minutes (KEDA respawns) | <15 minutes |
-| Zone failure | <5 minutes (replicas shift to surviving zones) | <15 minutes |
+| Single orchestrator replica crash | \<30 seconds (new replica spawns, loads SQLite from Blob) | \<15 minutes (last WAL backup) |
+| All orchestrator replicas crash | \<2 minutes (KEDA respawns) | \<15 minutes |
+| Zone failure | \<5 minutes (replicas shift to surviving zones) | \<15 minutes |
 | Region failure | Not in scope for initial design | Multi-region is a future enhancement |
 
----
+______________________________________________________________________
 
 ## Scaling Model
 
@@ -490,7 +491,7 @@ Container Apps consumption plan auto-sizes vCPU/memory within configured limits:
 
 Bottleneck is the LLM API, not compute or storage.
 
----
+______________________________________________________________________
 
 ## Cost Model
 
@@ -533,7 +534,7 @@ Assumptions: 50 sessions/day, 150 minion runs/day, ~3,000 tool calls/day, busine
 
 | Resource | Adjustment | Est. Cost |
 |---|---|---|
-| Container Apps | Scale-to-zero, <1 hr active/day | $5 |
+| Container Apps | Scale-to-zero, \<1 hr active/day | $5 |
 | AI Foundry | Minimal tokens | $15 |
 | Log Analytics | Minimal ingestion | $2 |
 | Private Endpoints | Reduce to 3 (SB, Storage, KV only) | $25 |
@@ -560,7 +561,7 @@ Assumptions: 50 sessions/day, 150 minion runs/day, ~3,000 tool calls/day, busine
 | Log Analytics data cap | Cap at 5 GB/day: ~$12/month saved |
 | Archive blobs after 30 days instead of 90 | ~$5/month |
 
----
+______________________________________________________________________
 
 ## Infrastructure as Code
 

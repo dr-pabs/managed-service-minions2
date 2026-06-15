@@ -1,2 +1,3 @@
 .terraform/
 target/
+node_modules/

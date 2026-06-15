@@ -1,24 +1,24 @@
 # How Goose Works with LLMs
 
-> **Date:** 2026-06-06  
+> **Date:** 2026-06-06\
 > **Purpose:** Clarify how Goose calls LLMs, how the agent harness works, and how Azure AI Foundry fits in.
 
----
+______________________________________________________________________
 
 ## Table of Contents
 
 1. [The Goose Agent Loop](#the-goose-agent-loop)
-2. [How Goose Calls an LLM](#how-goose-calls-an-llm)
-3. [Provider Abstraction](#provider-abstraction)
-4. [Goose's Own Harness vs. Native LLM Harness](#gooses-own-harness-vs-native-llm-harness)
-5. [How Tool Calling Works](#how-tool-calling-works)
-6. [Azure AI Foundry Integration](#azure-ai-foundry-integration)
-7. [Multi-Model Routing in the Framework](#multi-model-routing-in-the-framework)
-8. [Token Consumption & Cost Management](#token-consumption--cost-management)
-9. [GitHub Copilot — Can Goose Use It?](#github-copilot--can-goose-use-it)
-10. [What Goose Does NOT Do](#what-goose-does-not-do)
+1. [How Goose Calls an LLM](#how-goose-calls-an-llm)
+1. [Provider Abstraction](#provider-abstraction)
+1. [Goose's Own Harness vs. Native LLM Harness](#gooses-own-harness-vs-native-llm-harness)
+1. [How Tool Calling Works](#how-tool-calling-works)
+1. [Azure AI Foundry Integration](#azure-ai-foundry-integration)
+1. [Multi-Model Routing in the Framework](#multi-model-routing-in-the-framework)
+1. [Token Consumption & Cost Management](#token-consumption--cost-management)
+1. [GitHub Copilot — Can Goose Use It?](#github-copilot--can-goose-use-it)
+1. [What Goose Does NOT Do](#what-goose-does-not-do)
 
----
+______________________________________________________________________
 
 ## The Goose Agent Loop
 
@@ -49,12 +49,13 @@ Goose implements its **own agent harness** — it does not delegate agentic beha
 ```
 
 **Goose, not the LLM, decides:**
+
 - When to stop the loop (max_turns, context limits)
 - Which tools are available (extension allowlists)
 - How results are formatted and fed back
 - When to spawn a delegate (sub-agent)
 
----
+______________________________________________________________________
 
 ## How Goose Calls an LLM
 
@@ -98,14 +99,15 @@ Goose sends a standard chat-completions-style request:
 ```
 
 The LLM returns one of two things:
+
 1. **A text response** — the task is done. Goose presents this to the user or collects it as a delegate output.
-2. **A tool call** — Goose parses the function name and arguments, executes the tool via the extension system, appends the result as a `tool` role message, and loops back to THINK.
+1. **A tool call** — Goose parses the function name and arguments, executes the tool via the extension system, appends the result as a `tool` role message, and loops back to THINK.
 
 ### Streaming
 
 Goose uses streaming responses (`stream: true`). It receives tokens incrementally. For tool calls, it accumulates the JSON until the function name and arguments are complete, then executes. This means the user (or the orchestrator, for minions) sees partial text responses as they're generated.
 
----
+______________________________________________________________________
 
 ## Provider Abstraction
 
@@ -187,7 +189,7 @@ tiers:
     fallback: gpt-4.1
 ```
 
----
+______________________________________________________________________
 
 ## Goose's Own Harness vs. Native LLM Harness
 
@@ -238,7 +240,7 @@ If Goose delegated agentic control to Claude's native tool-use loop, we would lo
 └─────────────────────────────────────────────────────────┘
 ```
 
----
+______________________________________________________________________
 
 ## How Tool Calling Works
 
@@ -315,7 +317,7 @@ Minion (Goose delegate) ──tool_call──▶ mcp-toolshed ──▶ MCP Serv
 
 The minion **cannot bypass the toolshed**. The delegate's tool access is restricted to the toolshed extension only. The toolshed multiplexes to the correct MCP server. This is enforced at the Goose extension level — the minion literally does not have the GitHub MCP extension loaded; it only has `mcp-toolshed`.
 
----
+______________________________________________________________________
 
 ## Azure AI Foundry Integration
 
@@ -358,16 +360,16 @@ The minion **cannot bypass the toolshed**. The delegate's tool access is restric
 ### How it connects
 
 1. Goose container starts with a **managed identity** (Azure AD workload identity)
-2. The Azure OpenAI provider acquires an **Azure AD token** for the Foundry endpoint
-3. All API calls include the token in the `Authorization: Bearer <token>` header
-4. **No API key is ever stored** — not in code, not in env vars, not in Key Vault for the LLM itself
-5. Key Vault only stores MCP server credentials (GitHub PAT, ServiceNow password, etc.)
+1. The Azure OpenAI provider acquires an **Azure AD token** for the Foundry endpoint
+1. All API calls include the token in the `Authorization: Bearer <token>` header
+1. **No API key is ever stored** — not in code, not in env vars, not in Key Vault for the LLM itself
+1. Key Vault only stores MCP server credentials (GitHub PAT, ServiceNow password, etc.)
 
 ### Content safety
 
 Azure AI Foundry applies content safety **before** the request reaches the model and **after** the model generates a response. This is a platform-level feature — Goose doesn't implement content filtering. If a user's Slack message contains a prompt injection attempt, Foundry blocks it before the LLM sees it. If an LLM generates harmful content, Foundry filters the response before Goose receives it.
 
----
+______________________________________________________________________
 
 ## Multi-Model Routing in the Framework
 
@@ -499,13 +501,14 @@ tiers:
 
 **Model changes are a config deployment, not a code change.** When a model is retired or a new version ships, only `provider.yaml` changes — no prompt changes, no code changes, no redeployment of minion logic.
 
----
+______________________________________________________________________
 
 ## Token Consumption & Cost Management
 
 ### The Problem
 
 A multi-minion pipeline can consume significant tokens:
+
 - Orchestrator classification: ~500 tokens
 - Task decomposition: ~2,000 tokens
 - Code Explorer (searching a large repo): ~15,000 tokens
@@ -603,7 +606,7 @@ AppTraces
 
 An alert fires if daily cost exceeds a configured threshold ($50 default).
 
----
+______________________________________________________________________
 
 ## GitHub Copilot — Can Goose Use It?
 
@@ -634,7 +637,7 @@ If GitHub exposes a chat-completions-compatible API with tool-calling support, a
 
 **Azure AI Foundry's model catalog** provides models purpose-built for each task. The configurable tier system means we can swap in whatever model family is best — GPT variants for generation, Claude variants for analysis, and lightweight models for classification — without changing the framework code.
 
----
+______________________________________________________________________
 
 ## What Goose Does NOT Do
 
@@ -650,7 +653,7 @@ To avoid confusion, here's what Goose explicitly does **not** do with LLMs:
 | **Train or fine-tune models** | The framework uses pre-trained models as-is. No training data leaves the inference endpoint. |
 | **Share context across minions without orchestration** | Each minion has an isolated context window. Cross-minion knowledge transfer goes through the orchestrator (via `chatrecall` or explicit context passing). |
 
----
+______________________________________________________________________
 
 ## Summary
 

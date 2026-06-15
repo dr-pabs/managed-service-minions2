@@ -1,7 +1,7 @@
 # Delivery Specification — Goose Agent Framework
 
-> **Status:** Draft for implementation delivery  
-> **Date:** 2026-06-06  
+> **Status:** Draft for implementation delivery\
+> **Date:** 2026-06-06\
 > **Purpose:** Define the work to be delivered, the scope, the delivery phases, and the acceptance criteria for the Goose multi-agent framework.
 
 ## 1. Objective
@@ -23,45 +23,49 @@ This specification is grounded in the existing design documents in this folder, 
 - [skills-and-roles.md](./skills-and-roles.md)
 - [agent-led-development.md](./agent-led-development.md)
 
----
+______________________________________________________________________
 
 ## 2. Problem Statement
 
 The current Goose runtime provides the agent loop and tool primitives, but the framework still needs a complete delivery layer to make it useful in real operations:
 
 1. a central orchestrator for multi-minion decomposition and result synthesis
-2. shared tool governance for allowlists, auditing, rate limiting, and security
-3. Azure deployment, observability, and recovery patterns
-4. prompt-quality and test automation to ensure reliability
-5. governance and human approval for destructive or high-risk actions
+1. shared tool governance for allowlists, auditing, rate limiting, and security
+1. Azure deployment, observability, and recovery patterns
+1. prompt-quality and test automation to ensure reliability
+1. governance and human approval for destructive or high-risk actions
 
 The work to deliver is therefore not just a single bot or prompt, but an end-to-end framework that can safely run agentic workflows across code, tickets, and PR activities.
 
----
+______________________________________________________________________
 
 ## 3. Scope of Delivery
 
 ### In Scope
 
 1. Core framework capabilities
+
    - Intent classification and routing
    - Task decomposition into DAG-style minion workflows
    - Spawn, monitor, collect, retry, and dead-letter minion runs
    - Correlation ID propagation across sessions, minions, and tool calls
 
-2. Shared tool and security layer
+1. Shared tool and security layer
+
    - MCP toolshed allowlist enforcement
    - Tool-call logging and audit capture
    - Rate limiting and circuit breaking
    - Path scoping and least-privilege access
    - Human approval gates for destructive actions
 
-3. Ingress and channel integration
+1. Ingress and channel integration
+
    - Slack bot entry point
    - Microsoft Teams bot entry point
    - Scheduled task invocation for recurring workflows
 
-4. Azure platform delivery
+1. Azure platform delivery
+
    - Container Apps runtime
    - Service Bus for asynchronous tasks
    - Storage for session metadata, logs, and backups
@@ -69,7 +73,8 @@ The work to deliver is therefore not just a single bot or prompt, but an end-to-
    - AI Foundry model routing and content-safety integration
    - Log Analytics, Grafana, and the custom dashboard/observability views
 
-5. Delivery workflows and controls
+1. Delivery workflows and controls
+
    - GitHub and Azure DevOps pull-request review and creation workflows
    - Unit, integration, prompt-quality, E2E, chaos, and performance testing
    - Disaster-recovery, backup/restore, and production-validation checks
@@ -83,7 +88,7 @@ The work to deliver is therefore not just a single bot or prompt, but an end-to-
 - Dynamic runtime extension enable/disable as a governance model
 - Fully autonomous destructive actions without human approval
 
----
+______________________________________________________________________
 
 ## 4. Delivery Outcomes
 
@@ -98,7 +103,7 @@ The deliverable must provide the following business and technical outcomes:
 - The system can recover from common failures without silent loss of work.
 - Engineers can deploy, monitor, and improve the framework through CI/CD and observability.
 
----
+______________________________________________________________________
 
 ## 5. Delivery Workstreams
 
@@ -117,7 +122,7 @@ Success criteria:
 - multiple minions can run concurrently and combine outputs
 - failed runs are retried and recorded with a clear status
 
----
+______________________________________________________________________
 
 ### Workstream B — MCP Toolshed and Governance
 
@@ -134,7 +139,7 @@ Success criteria:
 - every approved tool call is logged with correlation context
 - the toolshed can safely enforce least-privilege access
 
----
+______________________________________________________________________
 
 ### Workstream C — Ingress, Messaging, and Runtime Integration
 
@@ -151,7 +156,7 @@ Success criteria:
 - asynchronous runs are durable and recoverable
 - session state can be resumed or inspected for debugging
 
----
+______________________________________________________________________
 
 ### Workstream D — Azure Infrastructure and Operations
 
@@ -168,7 +173,7 @@ Success criteria:
 - traffic flows through approved Azure security boundaries
 - operators can observe health, failures, cost, and usage
 
----
+______________________________________________________________________
 
 ### Workstream E — Prompt Quality, Test, and Release Controls
 
@@ -185,7 +190,7 @@ Success criteria:
 - regression tests run in CI before deployment
 - unsafe or low-quality changes can be rolled back or blocked
 
----
+______________________________________________________________________
 
 ## 6. Delivery Phases
 
@@ -214,24 +219,24 @@ Success criteria:
 - implement dashboard, alerting, and production diagnostics
 - validate performance, recoverability, and cost assumptions
 
----
+______________________________________________________________________
 
 ## 7. Acceptance Criteria
 
 The work is complete when all of the following are true:
 
 1. The orchestrator can accept a user request, classify intent, dispatch minions, and synthesize the result.
-2. The framework can retrieve, summarize, and act on a ServiceNow ticket and an Azure DevOps work item as part of a delivery flow.
-3. The framework can create or review pull requests in GitHub and Azure DevOps as part of the same delivery journey.
-4. Minions operate under scoped tool access and their tool calls are audited.
-5. Slack and Teams can successfully trigger and receive framework output.
-6. Operators can diagnose runs through the dashboard, correlation tree, live status, and logs.
-7. Failures are handled through retry, partial result, or dead-letter patterns without silent loss.
-8. Azure deployment, observability, recovery, and staging validation (including DR/RTO-RPO and performance checks) are defined and testable.
-9. Prompt and pipeline quality are validated through automated checks.
-10. Production deployment requires the approved human gate for destructive actions.
+1. The framework can retrieve, summarize, and act on a ServiceNow ticket and an Azure DevOps work item as part of a delivery flow.
+1. The framework can create or review pull requests in GitHub and Azure DevOps as part of the same delivery journey.
+1. Minions operate under scoped tool access and their tool calls are audited.
+1. Slack and Teams can successfully trigger and receive framework output.
+1. Operators can diagnose runs through the dashboard, correlation tree, live status, and logs.
+1. Failures are handled through retry, partial result, or dead-letter patterns without silent loss.
+1. Azure deployment, observability, recovery, and staging validation (including DR/RTO-RPO and performance checks) are defined and testable.
+1. Prompt and pipeline quality are validated through automated checks.
+1. Production deployment requires the approved human gate for destructive actions.
 
----
+______________________________________________________________________
 
 ## 8. Risks and Dependencies
 
@@ -249,7 +254,7 @@ The work is complete when all of the following are true:
 - MCP servers for GitHub, Azure DevOps, ServiceNow, Jira, Slack, and Teams
 - CI/CD and environment promotion controls
 
----
+______________________________________________________________________
 
 ## 9. Definition of Done
 
@@ -261,7 +266,7 @@ The framework is ready to be considered delivered when:
 - tests and prompt-evaluation gates are part of the standard release process
 - the delivery is traceable to the existing architecture and ADR documentation in this workspace
 
----
+______________________________________________________________________
 
 ## 10. Delivery Summary
 

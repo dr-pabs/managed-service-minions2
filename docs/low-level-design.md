@@ -1,13 +1,13 @@
 # Goose Agent Framework — Low-Level Design
 
-**Version:** 1.0  
-**Target Goose:** 1.37.0 (`aaif-goose/goose`)  
-**Date:** 2026-06-14  
-**Status:** Draft — Phase 1 scope  
+**Version:** 1.0\
+**Target Goose:** 1.37.0 (`aaif-goose/goose`)\
+**Date:** 2026-06-14\
+**Status:** Draft — Phase 1 scope
 
 > This document describes how the Goose Agent Framework extends the Goose platform to create a governed multi-agent orchestration system. It assumes familiarity with the high-level architecture in `high-level-design.md` and the delivery plan in `delivery-specification.md`.
 
----
+______________________________________________________________________
 
 ## 1. Goose Platform Primitives
 
@@ -120,6 +120,7 @@ Recipes are YAML task definitions — standalone, parameterized, and runnable. T
 | **Recipe** | `recipe.yaml` | Standalone task (instructions, parameters, extensions) | `goose run --recipe` or `delegate` with recipe path |
 
 Recipes support:
+
 - `parameters`: Typed inputs with `input_type` (string, integer, select) and `requirement` (required/optional)
 - `extensions`: Array of MCP/builtin extensions with `type`, `name`, `cmd`, `args`, `env_keys`
 - `sub_recipes`: Composition of multiple recipes into a DAG (Phase 2)
@@ -145,12 +146,12 @@ External clients (bot adapters, dashboards) connect via WebSocket, create sessio
 Slash commands are YAML files that register as `/command` triggers in goose sessions. When a user types `/review-pr 342`, goose:
 
 1. Looks up the command definition in the plugin's `commands/` directory.
-2. Parses arguments.
-3. Invokes the associated skill or behavior.
+1. Parses arguments.
+1. Invokes the associated skill or behavior.
 
 **Evidence:** Office-town ships `commands/knowledge-graduation.yaml`, `commands/triage-inbox.yaml`, etc. Format matches our `commands/review-pr.yaml`.
 
----
+______________________________________________________________________
 
 ## 2. Framework Architecture
 
@@ -283,7 +284,7 @@ This is the most critical architectural constraint:
 
 Every tool call from the minion hits the toolshed first. The toolshed checks the allowlist, rate limits, logs, and only then forwards to the real MCP server.
 
----
+______________________________________________________________________
 
 ## 3. Minion Lifecycle
 
@@ -412,16 +413,18 @@ SLACK/TEAMS                    GOOSE SERVE                  FRAMEWORK PLUGIN
 ```
 
 **Retry policy:**
+
 - Max 3 attempts per minion.
 - Exponential backoff: 2s, 4s, 8s.
 - On final failure, return error with `minion_type`, `attempts`, `last_error`.
 
 **Timeout policy:**
+
 - Per-minion wall-clock timeout (code-reviewer: 10 min, pr-crafter: 15 min, etc.).
 - Enforced by `load(taskId)` polling loop in the orchestrator skill.
 - On timeout, escalate with `interrupt_agent` (built-in orchestrator).
 
----
+______________________________________________________________________
 
 ## 4. Tool Governance — The Toolshed
 
@@ -532,6 +535,7 @@ JSON lines to stdout, collected by Container Insights → Log Analytics in produ
 ```
 
 On allowlist failure:
+
 ```json
 {
   "ts": "2026-06-14T18:01:00.456Z",
@@ -544,7 +548,7 @@ On allowlist failure:
 }
 ```
 
----
+______________________________________________________________________
 
 ## 5. Session and Correlation Model
 
@@ -566,6 +570,7 @@ corr_a1b2c3d4                      ← User message "Review PR #342 and check IN
 The plugin's `hooks/` directory injects cross-cutting behavior:
 
 **`hooks/hooks.json`:**
+
 ```json
 {
   "hooks": [
@@ -594,6 +599,7 @@ The plugin's `hooks/` directory injects cross-cutting behavior:
 ```
 
 **`hooks/session-start.sh`:**
+
 ```bash
 #!/bin/bash
 CORR_ID="corr_$(uuidgen | tr '[:upper:]' '[:lower:]')"
@@ -602,6 +608,7 @@ echo "[framework] Session started: $CORR_ID"
 ```
 
 **`hooks/session-end.sh`:**
+
 ```bash
 #!/bin/bash
 echo "[framework] Session ended: ${GOOSE_CORRELATION_ID:-unknown}"
@@ -624,7 +631,7 @@ CREATE TABLE IF NOT EXISTS framework_sessions (
 );
 ```
 
----
+______________________________________________________________________
 
 ## 6. Agent Definitions
 
@@ -633,6 +640,7 @@ CREATE TABLE IF NOT EXISTS framework_sessions (
 Each agent is a single `.md` file in `agents/`. The `delegate` tool loads it as the sub-agent's system prompt.
 
 **`agents/code-reviewer.md`:**
+
 ```markdown
 # Code Reviewer
 
@@ -684,7 +692,7 @@ The orchestrator skill maintains a registry mapping intents to agent files:
 | `ticket_fix_pr` | `agents/pr-crafter.md` | 30 | 15 | `["toolshed"]` |
 | `unknown` | (none) | — | — | — |
 
----
+______________________________________________________________________
 
 ## 7. Orchestrator Skill Design
 
@@ -702,6 +710,7 @@ description: Classify user intents, delegate to specialist agents, collect struc
 The skill instructions tell the LLM to classify the user's message. Phase 1 uses natural-language classification — no regex, no hardcoded patterns.
 
 The LLM is instructed to map the message to one of:
+
 - `code_review` — PR review requested
 - `ticket_lookup` — Ticket/incident status inquiry
 - `ticket_fix_pr` — Ticket fix + PR creation requested
@@ -728,12 +737,14 @@ delegate({
 ```
 
 Parameters are extracted from the user message by the LLM and passed as typed `parameters`:
+
 - `pr_number` (integer) — extracted from "Review PR #342"
 - `repo` (string) — extracted from context or default
 - `ticket_id` (string) — extracted from "INC00421"
 - `query` (string) — extracted from "find the login timeout source"
 
 **Concrete example (code review):**
+
 ```
 delegate({
   source: "code-reviewer",
@@ -791,7 +802,7 @@ The orchestrator skill uses the built-in `orchestrator` extension for visibility
 - **`view_session`** — After completion, the orchestrator can inspect the minion's full session for debugging.
 - **`interrupt_agent`** — If a minion times out or the user cancels, the orchestrator kills it cleanly.
 
----
+______________________________________________________________________
 
 ## 8. Bot Adapter Design
 
@@ -823,15 +834,16 @@ Bot adapters are thin ACP clients — they don't reimplement the agent loop or t
 **Dependencies:** `@slack/bolt` (Slack framework), ACP WebSocket client.
 
 **Flow:**
+
 1. Initialize Bolt app with bot token + signing secret.
-2. On `message` event in an allowed channel:
+1. On `message` event in an allowed channel:
    a. Post `:thinking_face:` reaction.
    b. Open ACP WebSocket to `goose serve`.
    c. Send the user message to the session.
    d. Wait for response.
    e. Post threaded reply with the result.
    f. Remove `:thinking_face:` reaction.
-3. Pass correlation ID metadata if available.
+1. Pass correlation ID metadata if available.
 
 **Channel allowlist:** Configurable list of channel IDs. Messages from non-allowed channels are silently ignored.
 
@@ -840,18 +852,19 @@ Bot adapters are thin ACP clients — they don't reimplement the agent loop or t
 **Dependencies:** `@microsoft/agents-hosting` (Microsoft 365 Agent SDK), ACP WebSocket client.
 
 **Flow:**
+
 1. Initialize with Azure AD app registration (managed identity, no static secrets).
-2. On message activity:
+1. On message activity:
    a. Post typing indicator.
    b. Open ACP WebSocket to `goose serve`.
    c. Send message to session.
    d. Wait for response.
    e. Post Adaptive Card with results (links, code snippets, action buttons if applicable).
-3. Team/channel allowlist via configuration.
+1. Team/channel allowlist via configuration.
 
 **Security:** Delegated permissions via Azure AD. No static App ID + password. Token management handled by the SDK.
 
----
+______________________________________________________________________
 
 ## 9. Slash Command Design
 
@@ -894,13 +907,14 @@ Goose:
 | `/triage-ticket <id>` | ticket_id (required) | `ticket_lookup` |
 | `/security-scan <target>` | target (required) | `security_audit` |
 
----
+______________________________________________________________________
 
 ## 10. Security Model
 
 ### 10.1 Least Privilege
 
 Minions receive ONLY the `toolshed` extension. They have no:
+
 - Shell access (`developer` extension not passed)
 - File write access
 - File edit access
@@ -919,7 +933,7 @@ Per ADR-007, destructive operations require human approval. The toolshed's allow
 
 Every tool call — allowed and blocked — is logged to stdout as JSON. In production, Container Insights collects these logs into Azure Log Analytics. The correlation ID links every log entry to a specific session and minion.
 
----
+______________________________________________________________________
 
 ## 11. Data Flow Summary
 
@@ -986,7 +1000,7 @@ User: "Review PR #342"
   └─► SessionEnd hook: write journal entry
 ```
 
----
+______________________________________________________________________
 
 ## 12. Interface Specifications
 
@@ -1043,11 +1057,12 @@ description: <one-line description>
 
 ### 12.4 MCP Server (Toolshed)
 
-**Transport:** stdio  
-**Protocol:** Model Context Protocol (JSON-RPC over stdin/stdout)  
-**Crate:** `rmcp` v0.4  
-**Tools exposed:** All GitHub MCP tools, proxied through allowlist/rate-limit/logging  
+**Transport:** stdio\
+**Protocol:** Model Context Protocol (JSON-RPC over stdin/stdout)\
+**Crate:** `rmcp` v0.4\
+**Tools exposed:** All GitHub MCP tools, proxied through allowlist/rate-limit/logging\
 **Config.yaml entry:**
+
 ```yaml
 toolshed:
   type: stdio
@@ -1057,12 +1072,12 @@ toolshed:
 
 ### 12.5 ACP Protocol (Bot Adapters)
 
-**Transport:** WebSocket over HTTP  
-**Default endpoint:** `ws://127.0.0.1:3284`  
-**Message format:** Agent Communication Protocol (Goose-native)  
+**Transport:** WebSocket over HTTP\
+**Default endpoint:** `ws://127.0.0.1:3284`\
+**Message format:** Agent Communication Protocol (Goose-native)\
 **Sessions:** Created and managed via ACP messages
 
----
+______________________________________________________________________
 
 ## 13. Deployment Model
 
@@ -1121,7 +1136,7 @@ cd bots/teams-bot && npm start
 └─────────────────────────────────────────────────────────────┘
 ```
 
----
+______________________________________________________________________
 
 ## 14. Testing and Coverage
 
@@ -1150,7 +1165,7 @@ cd bots/teams-bot && npm start
 
 See `testing-strategy.md` for the full coverage mandate and enforcement rules.
 
----
+______________________________________________________________________
 
 ## 15. Phase 1 Scope Boundary
 
@@ -1168,7 +1183,7 @@ Phase 1 delivers the **walking skeleton**: one intent (`code_review`), one agent
 | Multi-minion DAG | Not in scope | Phase 2 core feature |
 | Human-in-the-loop | Not in scope | Phase 2 per ADR-007 |
 
----
+______________________________________________________________________
 
 ## Appendix A: Goose CLI Reference (Verified Commands)
 

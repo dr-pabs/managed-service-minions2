@@ -1,27 +1,27 @@
 # Goose Agent Framework — Logical Architecture
 
-> **Date:** 2026-06-05  
-> **Status:** Draft  
+> **Date:** 2026-06-05\
+> **Status:** Draft\
 > **Complements:** [high-level-design.md](./high-level-design.md), [adrs.md](./adrs.md)
 
----
+______________________________________________________________________
 
 ## Table of Contents
 
 1. [System Context](#system-context)
-2. [Container Architecture](#container-architecture)
-3. [Orchestrator Internals](#orchestrator-internals)
-4. [MCP Toolshed Internals](#mcp-toolshed-internals)
-5. [Minion Lifecycle](#minion-lifecycle)
-6. [Sequence: Simple Query](#sequence-simple-query)
-7. [Sequence: Complex Pipeline](#sequence-complex-pipeline)
-8. [Sequence: Scheduled Daily PR Review](#sequence-scheduled-daily-pr-review)
-9. [Data Model](#data-model)
-10. [Observability Data Flow](#observability-data-flow)
-11. [Azure Deployment Topology](#azure-deployment-topology)
-12. [Security Boundaries](#security-boundaries)
+1. [Container Architecture](#container-architecture)
+1. [Orchestrator Internals](#orchestrator-internals)
+1. [MCP Toolshed Internals](#mcp-toolshed-internals)
+1. [Minion Lifecycle](#minion-lifecycle)
+1. [Sequence: Simple Query](#sequence-simple-query)
+1. [Sequence: Complex Pipeline](#sequence-complex-pipeline)
+1. [Sequence: Scheduled Daily PR Review](#sequence-scheduled-daily-pr-review)
+1. [Data Model](#data-model)
+1. [Observability Data Flow](#observability-data-flow)
+1. [Azure Deployment Topology](#azure-deployment-topology)
+1. [Security Boundaries](#security-boundaries)
 
----
+______________________________________________________________________
 
 ## System Context
 
@@ -58,7 +58,7 @@ This is the broadest view — the **C4 System Context diagram**. It defines what
 
 This diagram answers: *"What does the framework touch, and what touches it?"*
 
----
+______________________________________________________________________
 
 ## Container Architecture
 
@@ -121,11 +121,13 @@ This diagram answers: *"What does the framework touch, and what touches it?"*
 This is the **C4 Container diagram** — one zoom level in from the System Context. It shows the deployable runtime units (containers) and data stores, grouped by where they run.
 
 **Azure Container Apps** hosts four Goose extensions:
+
 - **Slack Bot** and **Teams Bot** — thin adapters. They receive messages from their respective platforms, forward to the orchestrator, and render responses (Block Kit for Slack, Adaptive Cards for Teams).
 - **Orchestrator** — the brain. Holds session state in embedded SQLite. Enqueues async work via Service Bus.
 - **MCP Toolshed** — the single interception point for every tool call. Enforces allowlists, rate limits, and logs everything.
 
 **Azure Services** are the managed platform underneath:
+
 - **Table Storage** is the immutable tool-call log, partitioned by correlation ID. Append-only.
 - **Blob Storage** holds large artifacts (full minion outputs, diffs) and periodic SQLite backups from the orchestrator.
 - **Service Bus** is the async minion task queue. Sessions guarantee ordered delivery per correlation ID.
@@ -136,7 +138,7 @@ This is the **C4 Container diagram** — one zoom level in from the System Conte
 
 The key design decision visible here: **the toolshed is on the critical path for every external call**. No minion talks directly to GitHub, ADO, ServiceNow, or Jira. Every call passes through the toolshed. This is what makes allowlisting, rate limiting, and audit logging non-bypassable.
 
----
+______________________________________________________________________
 
 ## Orchestrator Internals
 
@@ -211,10 +213,12 @@ This is the **internal component diagram of the Orchestrator**. It shows how a u
 **Ingress** receives the raw message + metadata from the Slack or Teams bot adapter.
 
 The **Intent Pipeline** classifies the request:
+
 - **Intent Classifier** uses the `fast` tier LLM to determine the intent (`ticket_lookup`, `code_review`, `pr_create`, `ticket→fix→pr`) and whether the task is simple (sync) or complex (async). It also detects the target platform (GitHub vs. Azure DevOps) from context clues.
 - **Task Decomposer** only fires for complex intents. It builds a DAG of sub-tasks: which minions can run in parallel, which depend on upstream results, and what context each needs.
 
 The **Minion Manager** handles execution:
+
 - **Spawner** calls `delegate(instructions, tools, async: true)`. For simple tasks it waits synchronously; for complex tasks it enqueues via Service Bus.
 - **Monitor** polls `load(taskId)` on a configurable interval (default 5s). Times out the minion if it exceeds its SLA.
 - **Collector** validates the minion's output against its JSON schema. Schema violations trigger a retry.
@@ -224,7 +228,7 @@ The **State Manager** persists everything to SQLite: session metadata, minion ru
 
 The **Human Gate** intercepts destructive actions. The Approval Engine prompts the user via Slack/Teams and waits. The Timeout Handler denies stale approvals and escalates.
 
----
+______________________________________________________________________
 
 ## MCP Toolshed Internals
 
@@ -313,6 +317,7 @@ This is the **internal component diagram of the MCP Toolshed** — the most secu
 **Security Layer** is first. The **Allowlist Check** compares the requested tool against the calling minion's manifest (`minion_type → mcp_server → allowed_tools`). If the tool is not in the allowlist, the call is blocked and logged as a security event — it never reaches the MCP server. If allowed, the **Rate Limiter** checks a sliding window counter per server+minion pair. Throttled calls get a 429 response, and the minion is expected to back off.
 
 **Logging Layer** captures every call twice:
+
 - **Pre-Call Logger** records the timestamp, correlation ID, minion type, server, tool name, and parameters (truncated at 4KB) *before* the call is made.
 - **Post-Call Logger** records the result summary (first 1KB), latency in milliseconds, and status (`success`, `error`, `blocked_by_allowlist`, `throttled`) *after* the call returns.
 
@@ -321,11 +326,12 @@ This is the **internal component diagram of the MCP Toolshed** — the most secu
 Nine MCP server connections are shown: GitHub, Azure DevOps, ServiceNow, Jira, Slack, Teams, Filesystem, Git, and Shell. Each has its own transport (SSE for remote, stdio for local) and authentication (bearer tokens, basic auth, Azure AD).
 
 **Outputs** fan out to three destinations:
+
 - **Table Storage** — durable, immutable audit log. Queryable by correlation ID prefix.
 - **Log Analytics** — via stdout → Container Insights. Real-time KQL queries, dashboards, alerts.
 - **Blob Storage** — large artifacts (full minion outputs, diffs) that don't fit in Table Storage rows.
 
----
+______________________________________________________________________
 
 ## Minion Lifecycle
 
@@ -380,7 +386,7 @@ This **state diagram** shows every state a minion can be in, and the transitions
 
 The state machine is the same for all five minion types. What differs per type is the timeout, max turns, tool allowlist, and system prompt — all defined in the orchestrator extension manifest.
 
----
+______________________________________________________________________
 
 ## Sequence: Simple Query
 
@@ -423,19 +429,19 @@ Key observations:
 
 1. **The Teams Bot is a thin adapter.** It receives the message, extracts user/channel context, and forwards to the orchestrator. It does no intent classification or routing itself.
 
-2. **The orchestrator classifies the intent as `ticket_lookup`** and determines the task is simple enough for synchronous execution (single minion, expected < 10 seconds). It generates a correlation ID (`corr_f7e8d9`) that will propagate through every subsequent call.
+1. **The orchestrator classifies the intent as `ticket_lookup`** and determines the task is simple enough for synchronous execution (single minion, expected < 10 seconds). It generates a correlation ID (`corr_f7e8d9`) that will propagate through every subsequent call.
 
-3. **The Ticket Analyst minion is spawned synchronously** (`async: false`). It receives a focused instruction, the correlation ID `corr_f7e8d9.1`, and its tool allowlist (ADO read + GitHub read).
+1. **The Ticket Analyst minion is spawned synchronously** (`async: false`). It receives a focused instruction, the correlation ID `corr_f7e8d9.1`, and its tool allowlist (ADO read + GitHub read).
 
-4. **Two tool calls are made through the toolshed**, both logged to Table Storage: `get_work_item` to Azure DevOps (42ms) and `search_repos` to find the owning project (90ms). Each carries the full correlation ID (`corr_f7e8d9.1.ado-001`, `corr_f7e8d9.1.ado-002`).
+1. **Two tool calls are made through the toolshed**, both logged to Table Storage: `get_work_item` to Azure DevOps (42ms) and `search_repos` to find the owning project (90ms). Each carries the full correlation ID (`corr_f7e8d9.1.ado-001`, `corr_f7e8d9.1.ado-002`).
 
-5. **The orchestrator collects the structured JSON**, validates it against the Ticket Analyst output schema, synthesizes a platform-agnostic response, and returns it to the Teams Bot.
+1. **The orchestrator collects the structured JSON**, validates it against the Ticket Analyst output schema, synthesizes a platform-agnostic response, and returns it to the Teams Bot.
 
-6. **The Teams Bot renders an Adaptive Card** with the work item title, status, assignee, and related information. The user sees the response inline in the chat.
+1. **The Teams Bot renders an Adaptive Card** with the work item title, status, assignee, and related information. The user sees the response inline in the chat.
 
 This flow completes in under 3 seconds end-to-end.
 
----
+______________________________________________________________________
 
 ## Sequence: Complex Pipeline
 
@@ -505,6 +511,7 @@ Key design patterns visible here:
 **Async acknowledgment.** The orchestrator classifies the intent as `ticket→fix→pr` and immediately returns a "Working on it…" message to Slack. The user is not held waiting. Progress updates are posted as each phase completes.
 
 **Parallel Phase 1.** Two minions run simultaneously via Service Bus:
+
 - **Ticket Analyst** (`corr_a1b2c3.1`) queries ServiceNow for the incident details and cross-references Azure DevOps for related work items. This establishes *what* needs to be fixed.
 - **Code Explorer** (`corr_a1b2c3.2`) searches the codebase (`git log --grep`, repo search) for files related to the incident. This establishes *where* the fix should go.
 
@@ -518,7 +525,7 @@ Both return structured JSON to the orchestrator. The orchestrator posts a progre
 
 **End-to-end visibility.** Every tool call in this pipeline (ServiceNow queries, git operations, PR creation, review comments) is logged with its full correlation ID. An operator can reconstruct the entire 4-minion, multi-minute pipeline from the correlation tree view in the dashboard.
 
----
+______________________________________________________________________
 
 ## Sequence: Scheduled Daily PR Review
 
@@ -601,6 +608,7 @@ Key design patterns:
 **Independent review per PR.** Each minion reviews exactly one PR. It fetches the diff, analyzes for issues (correctness, performance, security, style), and posts structured review comments. Each minion's output is a standard Code Reviewer JSON schema: `{ findings: [...], summary, approved }`.
 
 **Synthesized digest.** The orchestrator collects all 6 outputs and produces a single Adaptive Card digest for Teams:
+
 - 2 approved
 - 3 with changes requested (2 major, 1 minor)
 - 1 blocked (SQL injection risk in PR #570)
@@ -609,7 +617,7 @@ Key design patterns:
 
 This flow demonstrates the framework running unattended on a schedule, delivering value before the team starts their day.
 
----
+______________________________________________________________________
 
 ## Data Model
 
@@ -699,7 +707,7 @@ This **entity-relationship diagram** shows the data model that underpins the fra
 
 The foreign key relationships show the traceability chain: Session → MinionRun → ToolCall. Given a session correlation ID, you can reconstruct every minion that ran and every tool it called.
 
----
+______________________________________________________________________
 
 ## Observability Data Flow
 
@@ -775,11 +783,12 @@ This **data flow diagram** traces the journey of a single tool call from the min
 
 1. **Azure Table Storage** — the durable, immutable audit log. Partitioned by correlation ID. Queried by the custom `agent-dashboard` (Phase 4) for session reconstruction and correlation tree views.
 
-2. **stdout (structured JSON)** — picked up by Container Insights and forwarded to Log Analytics. This is the real-time path.
+1. **stdout (structured JSON)** — picked up by Container Insights and forwarded to Log Analytics. This is the real-time path.
 
-3. **Azure Blob Storage** — for large artifacts that exceed Table Storage's row size or Log Analytics' ingestion limits. Full minion outputs and complete diffs live here.
+1. **Azure Blob Storage** — for large artifacts that exceed Table Storage's row size or Log Analytics' ingestion limits. Full minion outputs and complete diffs live here.
 
 **Log Analytics** is the KQL engine. It serves two consumers:
+
 - **Azure Managed Grafana** queries it for the four operational dashboards (Overview, Minion Health, Cost & Capacity, Security). These dashboards are the primary operational interface.
 - **Alert Rules** evaluate KQL queries on a schedule. Sev-1 alerts (tool call failure rate > 20%) go to both Teams and SMS. Sev-2 alerts (timeout rate, DLQ depth) go to Teams. Sev-3 alerts (rate limit hits, idle detection) go to Teams as informational messages.
 
@@ -787,7 +796,7 @@ This **data flow diagram** traces the journey of a single tool call from the min
 
 The design ensures that no single storage failure loses observability: Table Storage handles durability, Log Analytics handles real-time querying, and Blob handles large payloads.
 
----
+______________________________________________________________________
 
 ## Azure Deployment Topology
 
@@ -863,10 +872,12 @@ graph TB
 This **deployment diagram** maps every logical component to its Azure resource. It shows what runs where, what talks to what, and — critically — what crosses the VNet boundary.
 
 **Inside the VNet (private subnet):**
+
 - **Container Apps** host the four Goose extensions: Orchestrator (2-5 replicas, autoscaled by KEDA on Service Bus queue depth), Slack Bot (1 replica), Teams Bot (1 replica), and MCP Sidecars (filesystem, git, shell — stdio-based MCP servers that must colocate with the orchestrator).
 - **Private Endpoints** connect Container Apps to Azure managed services without traversing the public internet. Service Bus, Table Storage, Blob Storage, Key Vault, and AI Foundry are all reached via private IP. This is the default Azure landing-zone pattern.
 
 **Outside the VNet:**
+
 - **Managed services** are provisioned but accessed through private endpoints. They are in the same Azure subscription but logically outside the VNet boundary in Mermaid's notation.
 - **Public ingress** is limited to Slack API and Teams API. These are the only public-facing endpoints. The bots listen for inbound webhooks.
 - **External MCP servers** (GitHub, Azure DevOps, ServiceNow, Jira) are reached via SSE over HTTPS. They run in third-party clouds or on-premises.
@@ -875,7 +886,7 @@ This **deployment diagram** maps every logical component to its Azure resource. 
 
 **The `.->` (dotted) arrow** to Key Vault indicates that this connection is indirect: the Azure SDK handles token acquisition via managed identity. The application code never sees a secret.
 
----
+______________________________________________________________________
 
 ## Security Boundaries
 
@@ -958,6 +969,7 @@ This is the **trust-boundary diagram**. It defines four zones with increasing le
 **DMZ (🟡 yellow):** The Slack Bot and Teams Bot. These are the only components that accept inbound connections from the internet. They validate platform signatures (Slack signing secret, Teams Bot Framework authentication), extract the message payload, and forward it to the orchestrator over **internal-only** connections. The bots do not hold credentials to any external system beyond what they need to send/receive messages.
 
 **Trusted Zone — Goose Runtime (🟢 green):** The orchestrator, minions, and toolshed. This zone has no direct internet exposure. It communicates outbound to Azure services and external MCP servers, but never accepts unsolicited inbound connections.
+
 - **Minion Sandbox:** Each minion is a Goose delegate with an isolated context window. It sees only the tools it's been allowlisted for. It cannot access the orchestrator's memory, other minions' state, or unapproved tools.
 - **Toolshed Boundary:** The toolshed is the mandatory gate between minions and external MCP servers. Every call passes through allowlist enforcement and rate limiting. Blocked calls are logged as security events — they never reach the target server.
 
@@ -965,7 +977,7 @@ This is the **trust-boundary diagram**. It defines four zones with increasing le
 
 The critical security property of this architecture: **an external MCP server can never call back into Goose**. All connections are outbound. A compromised MCP server cannot reach the orchestrator, cannot access other MCP server credentials, and cannot tamper with the audit log.
 
----
+______________________________________________________________________
 
 | Color | Hex | Meaning |
 |---|---|---|
@@ -977,7 +989,7 @@ The critical security property of this architecture: **an external MCP server ca
 
 All diagrams use **dark text** (`#1a1a1a`) on light backgrounds for readability. Theme is `base` with explicit `color` directives.
 
----
+______________________________________________________________________
 
 ## References
 

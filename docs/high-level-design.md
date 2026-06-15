@@ -1,32 +1,32 @@
 # Goose Agent Framework — High-Level Design
 
-> **Status:** Revised Draft  
-> **Date:** 2026-06-05  
+> **Status:** Revised Draft\
+> **Date:** 2026-06-05\
 > **Author:** Goose (AAIF)
 
----
+______________________________________________________________________
 
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [Architecture](#architecture)
-3. [Layer 1: Entry Points](#layer-1-entry-points)
-4. [Layer 2: Orchestrator](#layer-2-orchestrator)
-5. [Layer 3: Minion Pool](#layer-3-minion-pool)
-6. [Layer 4: MCP Toolshed](#layer-4-mcp-toolshed)
-7. [Storage Architecture](#storage-architecture)
-8. [Tool Call Capture](#tool-call-capture)
-9. [Technical Architecture](#technical-architecture)
-10. [GitHub's Role](#githubs-role)
-11. [Data Flows](#data-flows)
-12. [Implementation Roadmap](#implementation-roadmap)
-13. [Key Design Decisions](#key-design-decisions)
-14. [Security & Governance](#security--governance)
-15. [Observability](#observability)
-16. [Architecture Decision Records](#architecture-decision-records)
-17. [Appendix: Extension Manifests](#appendix-extension-manifests)
+1. [Architecture](#architecture)
+1. [Layer 1: Entry Points](#layer-1-entry-points)
+1. [Layer 2: Orchestrator](#layer-2-orchestrator)
+1. [Layer 3: Minion Pool](#layer-3-minion-pool)
+1. [Layer 4: MCP Toolshed](#layer-4-mcp-toolshed)
+1. [Storage Architecture](#storage-architecture)
+1. [Tool Call Capture](#tool-call-capture)
+1. [Technical Architecture](#technical-architecture)
+1. [GitHub's Role](#githubs-role)
+1. [Data Flows](#data-flows)
+1. [Implementation Roadmap](#implementation-roadmap)
+1. [Key Design Decisions](#key-design-decisions)
+1. [Security & Governance](#security--governance)
+1. [Observability](#observability)
+1. [Architecture Decision Records](#architecture-decision-records)
+1. [Appendix: Extension Manifests](#appendix-extension-manifests)
 
----
+______________________________________________________________________
 
 ## Overview
 
@@ -46,7 +46,7 @@ The Goose Agent Framework extends the core Goose platform into a **multi-agent o
 | **Immutable audit trail** | Every tool call captured, correlated, and queryable via Azure Table Storage and Log Analytics |
 | **Low-cost durable storage** | SQLite + Azure Table Storage + Azure Blob — ~$2-5/month at moderate scale |
 
----
+______________________________________________________________________
 
 ## Architecture
 
@@ -105,14 +105,14 @@ The Goose Agent Framework extends the core Goose platform into a **multi-agent o
 ### Principles
 
 1. **Stateless minions, stateful orchestrator** — Minions are disposable delegates; the orchestrator holds the conversation thread and aggregates results.
-2. **Tool allowlisting per minion** — Each minion receives only the MCP tools it needs, enforcing least privilege.
-3. **Async parallelism** — Independent sub-tasks run concurrently via Goose's `delegate` with `async: true`.
-4. **Human-in-the-loop** — Destructive actions (merge, deploy) require explicit confirmation.
-5. **Extensible by extension** — Every component is a Goose extension; new minions, tools, and entry points can be added without modifying the core.
-6. **Correlated observability** — Every action carries a root correlation ID: Session → Minion → Tool Call.
-7. **Cheap by default** — Storage architecture starts at ~$2/month; scales linearly with usage. No Cosmos DB dependency.
+1. **Tool allowlisting per minion** — Each minion receives only the MCP tools it needs, enforcing least privilege.
+1. **Async parallelism** — Independent sub-tasks run concurrently via Goose's `delegate` with `async: true`.
+1. **Human-in-the-loop** — Destructive actions (merge, deploy) require explicit confirmation.
+1. **Extensible by extension** — Every component is a Goose extension; new minions, tools, and entry points can be added without modifying the core.
+1. **Correlated observability** — Every action carries a root correlation ID: Session → Minion → Tool Call.
+1. **Cheap by default** — Storage architecture starts at ~$2/month; scales linearly with usage. No Cosmos DB dependency.
 
----
+______________________________________________________________________
 
 ## Layer 1: Entry Points
 
@@ -124,10 +124,10 @@ The Goose Agent Framework extends the core Goose platform into a **multi-agent o
 - **Mechanism:** Listens for `@goose` mentions in channels or DMs
 - **Flow:**
   1. Receive message event
-  2. Post "thinking..." reaction
-  3. Forward raw text + channel/user context to Orchestrator
-  4. Receive structured response (summary + optional attachments)
-  5. Post threaded reply with results
+  1. Post "thinking..." reaction
+  1. Forward raw text + channel/user context to Orchestrator
+  1. Receive structured response (summary + optional attachments)
+  1. Post threaded reply with results
 - **Security:** Slack signing secret verification; channel allowlist
 
 ### Microsoft Teams Bot
@@ -138,10 +138,10 @@ The Goose Agent Framework extends the core Goose platform into a **multi-agent o
 - **Mechanism:** Listens for `@goose` mentions in channels, group chats, and personal chats
 - **Flow:**
   1. Receive message activity from Microsoft 365 Agent SDK
-  2. Post "typing" indicator
-  3. Forward raw text + teams/channel/user context to Orchestrator
-  4. Receive structured response
-  5. Post Adaptive Card with rich results (links, code snippets, action buttons)
+  1. Post "typing" indicator
+  1. Forward raw text + teams/channel/user context to Orchestrator
+  1. Receive structured response
+  1. Post Adaptive Card with rich results (links, code snippets, action buttons)
 - **Security:**
   - Azure AD app registration with delegated permissions (Microsoft Entra ID)
   - Team/channel allowlist
@@ -172,7 +172,7 @@ The Goose Agent Framework extends the core Goose platform into a **multi-agent o
   - `*/30 * * * *` — Poll ServiceNow for new critical incidents
   - `0 7 * * 1` — Weekly codebase health report (security scan + dependency audit)
 
----
+______________________________________________________________________
 
 ## Layer 2: Orchestrator
 
@@ -319,11 +319,12 @@ The root doesn't manage individual minions — it manages sub-orchestrators, eac
 
 V1 handles batch workloads through **cron + parallel minions**: the daily PR review spawns 6 parallel Code Reviewers, the weekly security scan spawns 5 parallel Auditors — all flat, all managed by the root orchestrator. This works at V1 scale and produces the same digests. When production data shows the flat model straining (queue depth growing, session latency spiking), recursive orchestration is the V2 answer — and it slots into the existing architecture without rebuilding anything.
 
----
+______________________________________________________________________
 
 ## Layer 3: Minion Pool
 
 Each minion is a Goose `delegate` with:
+
 - A **specialized system prompt** defining its role, boundaries, and output format
 - A **curated tool allowlist** restricting which MCP tools it can call
 - **Output schema** — structured JSON the orchestrator can parse and merge
@@ -331,7 +332,7 @@ Each minion is a Goose `delegate` with:
 
 ### Minion Definitions
 
----
+______________________________________________________________________
 
 #### 1. Code Explorer
 
@@ -345,7 +346,7 @@ Each minion is a Goose `delegate` with:
 | **Max Turns** | 15 |
 | **Timeout** | 5 minutes |
 
----
+______________________________________________________________________
 
 #### 2. Code Reviewer
 
@@ -359,7 +360,7 @@ Each minion is a Goose `delegate` with:
 | **Max Turns** | 20 |
 | **Timeout** | 10 minutes |
 
----
+______________________________________________________________________
 
 #### 3. PR Crafter
 
@@ -373,7 +374,7 @@ Each minion is a Goose `delegate` with:
 | **Max Turns** | 30 |
 | **Timeout** | 15 minutes |
 
----
+______________________________________________________________________
 
 #### 4. Ticket Analyst
 
@@ -387,7 +388,7 @@ Each minion is a Goose `delegate` with:
 | **Max Turns** | 10 |
 | **Timeout** | 5 minutes |
 
----
+______________________________________________________________________
 
 #### 5. Security Auditor
 
@@ -401,7 +402,7 @@ Each minion is a Goose `delegate` with:
 | **Max Turns** | 20 |
 | **Timeout** | 10 minutes |
 
----
+______________________________________________________________________
 
 ## Layer 4: MCP Toolshed
 
@@ -473,7 +474,7 @@ minions:
     # No access to: servicenow, jira, slack, teams, docker
 ```
 
----
+______________________________________________________________________
 
 ## Storage Architecture
 
@@ -595,7 +596,7 @@ CREATE TABLE rate_limit_buckets (
 );
 ```
 
----
+______________________________________________________________________
 
 ## Tool Call Capture
 
@@ -605,7 +606,7 @@ Every tool invocation flows through three layers of capture, each serving a dist
 
 Goose's delegate/session infrastructure already tracks tool calls internally. The `chatrecall` extension surfaces session summaries. We extend this with a **structured export** that flattens tool calls into the Azure Table Storage schema.
 
-**Captures:** Tool name, parameters, results, and timing at the delegate level.  
+**Captures:** Tool name, parameters, results, and timing at the delegate level.\
 **Purpose:** Session reconstruction, debugging.
 
 ### Layer B: MCP Toolshed Proxy (Primary)
@@ -617,6 +618,7 @@ Minion → mcp-toolshed → [log] → [allowlist check] → [rate limit check] �
 ```
 
 **Before-call log (synchronous):**
+
 - Timestamp (UTC)
 - Correlation ID (minion run)
 - MCP server name
@@ -625,22 +627,26 @@ Minion → mcp-toolshed → [log] → [allowlist check] → [rate limit check] �
 - Minion type
 
 **After-call log (synchronous):**
+
 - Result summary (first 1KB)
 - Status (success / error / blocked)
 - Latency in milliseconds
 - Error details if failed
 
 **Blocked-call log (security event):**
+
 - If allowlist rejected: logged as a **security event**, no call made
 - If rate limit hit: logged as a **throttle event**, HTTP 429 returned to minion
 
 All logs write to:
+
 1. **Azure Table Storage** — durable, queryable by correlation ID
-2. **stdout (structured JSON)** — picked up by Container Insights → Log Analytics for real-time KQL querying
+1. **stdout (structured JSON)** — picked up by Container Insights → Log Analytics for real-time KQL querying
 
 ### Layer C: MCP Server Side (Optional)
 
 Each MCP server can independently emit its own usage/audit logs. This is optional because the toolshed already captures everything, but it provides defense-in-depth for:
+
 - **GitHub:** Audit log events for API access
 - **Azure DevOps:** Activity log for PAT / service principal usage
 - **ServiceNow:** System log for REST API calls
@@ -692,7 +698,7 @@ AppTraces
 | take 20
 ```
 
----
+______________________________________________________________________
 
 ## Technical Architecture
 
@@ -786,7 +792,7 @@ The framework runs on **Azure AI Foundry** for AI inference and **Azure Containe
 | Minion timeout spike | Prometheus alert → ops investigate |
 | Rate limit near exhaustion (GitHub/ADO) | Backpressure: orchestrator throttles dispatch |
 
----
+______________________________________________________________________
 
 ## GitHub's Role
 
@@ -885,9 +891,9 @@ jobs:
 Meta-capability: minions can propose improvements to the framework itself:
 
 1. Code Reviewer minion notices a pattern of false negatives in its own review output
-2. It opens a PR against `goose-agent-framework` suggesting a prompt change
-3. Human operator reviews and merges
-4. All future reviews benefit from the improvement
+1. It opens a PR against `goose-agent-framework` suggesting a prompt change
+1. Human operator reviews and merges
+1. All future reviews benefit from the improvement
 
 This creates a **virtuous cycle** where the framework gets better the more it's used.
 
@@ -895,7 +901,7 @@ This creates a **virtuous cycle** where the framework gets better the more it's 
 
 Framework bugs, feature requests, and roadmap items are tracked in GitHub Issues. The orchestrator could theoretically work on its own backlog — analyzing items, proposing fixes, and opening PRs against itself.
 
----
+______________________________________________________________________
 
 ## Data Flows
 
@@ -1019,7 +1025,7 @@ Slack: "@goose summarize all Sev-1 incidents and cross-reference with ADO work i
    └── No PR yet — [Create Fix PR]
 ```
 
----
+______________________________________________________________________
 
 ## Implementation Roadmap
 
@@ -1078,7 +1084,7 @@ Slack: "@goose summarize all Sev-1 incidents and cross-reference with ADO work i
 | 26 | Documentation & runbook | Operator guide, minion authoring guide, troubleshooting, KQL recipes |
 | 27 | Self-improvement POC | Minion proposes a prompt fix → PR → human reviews |
 
----
+______________________________________________________________________
 
 ## Key Design Decisions
 
@@ -1102,7 +1108,7 @@ Slack: "@goose summarize all Sev-1 incidents and cross-reference with ADO work i
 | 16 | **Three-layer tool call capture** | Goose-native (automatic), MCP toolshed proxy (primary, allowlist enforcement), server-side (optional defense-in-depth). Immutable log in Table Storage + real-time in Log Analytics. | ADR-016 |
 | 17 | **Correlation ID propagation** | Every action carries a root → sub → tool-call ID. Full trace reconstruction from Table Storage + Log Analytics. | ADR-017 |
 
----
+______________________________________________________________________
 
 ## Security & Governance
 
@@ -1173,7 +1179,7 @@ governance:
     security-auditor: 600
 ```
 
----
+______________________________________________________________________
 
 ## Observability
 
@@ -1278,7 +1284,7 @@ mcp-toolshed (Layer B capture)
                        Reads Table Storage + Log Analytics
 ```
 
----
+______________________________________________________________________
 
 ## Architecture Decision Records
 
@@ -1307,7 +1313,7 @@ All ADRs are maintained in [`adrs.md`](./adrs.md). See that document for the ful
 | ADR-019 | Filesystem path scoping per minion |
 | ADR-020 | Optional semantic code tagging |
 
----
+______________________________________________________________________
 
 ## Appendix: Extension Manifests
 
@@ -1482,13 +1488,13 @@ minions:
         shell: {allow: [run_command], command_allowlist: ["bandit", "npm audit", "trivy", "gitleaks", "cargo audit"]}
 ```
 
----
+______________________________________________________________________
 
 ## Next Steps
 
 1. **Review & align** — Discuss the revised design with stakeholders; confirm Teams + ADO scope and storage architecture
-2. **Provision Azure infra** — Container Apps environment, Service Bus namespace, Table Storage account, Key Vault
-3. **Spike the toolshed** — Build a minimal `mcp-toolshed` extension connecting GitHub + Azure DevOps + Filesystem MCP servers with logging to Table Storage
-4. **Prototype a single pipeline** — "Review PR #N" end-to-end via Teams (Teams Bot → Orchestrator → Code Reviewer → Adaptive Card response)
-5. **Iterate** — Add ServiceNow, Jira, scheduled jobs, and the Security Auditor
-6. **Productionize** — Governance controls, KQL dashboards, alert rules, and operator runbook
+1. **Provision Azure infra** — Container Apps environment, Service Bus namespace, Table Storage account, Key Vault
+1. **Spike the toolshed** — Build a minimal `mcp-toolshed` extension connecting GitHub + Azure DevOps + Filesystem MCP servers with logging to Table Storage
+1. **Prototype a single pipeline** — "Review PR #N" end-to-end via Teams (Teams Bot → Orchestrator → Code Reviewer → Adaptive Card response)
+1. **Iterate** — Add ServiceNow, Jira, scheduled jobs, and the Security Auditor
+1. **Productionize** — Governance controls, KQL dashboards, alert rules, and operator runbook

@@ -1,9 +1,9 @@
 # Skills & Roles — Development and Deployment
 
-> **Date:** 2026-06-06  
+> **Date:** 2026-06-06\
 > **Purpose:** Clarify who is needed at each phase to build and operate the Goose Agent Framework.
 
----
+______________________________________________________________________
 
 ## Role-to-Phase Matrix
 
@@ -21,13 +21,14 @@
 
 🟢 = heavily involved. 🟡 = partially involved. — = not needed yet.
 
----
+______________________________________________________________________
 
 ## Role Deep-Dives
 
 ### 1. Goose/Agent Engineer
 
 **What they do:**
+
 - Write Goose extensions (`orchestrator`, `mcp-toolshed`, `slack-bot`, `teams-bot`, `agent-dashboard`)
 - Implement the orchestrator's intent classifier, task decomposer, minion lifecycle manager
 - Wire the toolshed's allowlist enforcement, rate limiter, and logging layer
@@ -35,6 +36,7 @@
 - Implement correlation ID propagation, structured output validation, and human-in-the-loop gating
 
 **Skills:**
+
 - **Must have:** TypeScript or Python (Goose's extension language). Understanding of LLM agent architectures. Experience with the Goose framework or similar agent SDKs.
 - **Nice to have:** Contributed to Goose open-source. Built an agent framework before.
 
@@ -47,11 +49,12 @@
 | 4 | Polish. Wire the dashboard backend. Implement prompt canary logic. |
 | Ops | Debug failed sessions. Tune orchestrator performance. |
 
----
+______________________________________________________________________
 
 ### 2. MCP/Integration Engineer
 
 **What they do:**
+
 - Build and maintain MCP server connections (GitHub, Azure DevOps, ServiceNow, Jira, Slack, Teams)
 - Implement the toolshed's connection pool, health checks, and circuit breakers
 - Handle MCP server authentication (PATs, OAuth, basic auth → Key Vault)
@@ -59,6 +62,7 @@
 - Handle MCP protocol edge cases (SSE reconnection, stdio lifecycle, large response streaming)
 
 **Skills:**
+
 - **Must have:** Strong TypeScript or Python. Experience with REST/SSE APIs. Understanding of MCP protocol spec. Experience with at least one of: GitHub API, Azure DevOps API, ServiceNow API.
 - **Nice to have:** Written an MCP server before. Contributed to MCP SDK.
 
@@ -71,11 +75,12 @@
 | 4 | Build Slack MCP + Teams MCP connections (for outbound bot messaging). |
 | Ops | Debug MCP connectivity issues. Add new MCP servers as needed. |
 
----
+______________________________________________________________________
 
 ### 3. Azure/Infrastructure Engineer
 
 **What they do:**
+
 - Design and deploy Azure infrastructure via Bicep
 - Configure VNet, subnets, private endpoints, NSGs, DNS
 - Provision Container Apps environment, Service Bus, Storage, Key Vault, AI Foundry
@@ -85,6 +90,7 @@
 - Manage environments (dev, staging, prod) with per-environment Bicep parameters
 
 **Skills:**
+
 - **Must have:** Azure infrastructure experience (Container Apps, networking, Service Bus, Key Vault). Bicep or Terraform. Managed identity and RBAC. GitHub Actions.
 - **Nice to have:** Azure AI Foundry experience. KEDA autoscaling. Azure Policy.
 
@@ -97,11 +103,12 @@
 | 4 | Production hardening. Cost optimization. PTU provisioning. |
 | Ops | Monitor infrastructure. Respond to alerts. Scale resources. |
 
----
+______________________________________________________________________
 
 ### 4. Prompt/LLM Engineer
 
 **What they do:**
+
 - Write and iterate on minion system prompts (5 minion types)
 - Design output JSON schemas per minion
 - Build and maintain the prompt quality test case bank (50-100 cases per minion)
@@ -111,6 +118,7 @@
 - Handle LLM-specific failure modes (hallucinated tools, content filter blocks, token limits)
 
 **Skills:**
+
 - **Must have:** Prompt engineering experience on production systems. Understanding of LLM failure modes. JSON Schema. Familiarity with at least one evals framework.
 - **Nice to have:** Experience with multi-model routing. Code review experience (for Code Reviewer prompt). Security background (for Security Auditor prompt).
 
@@ -124,17 +132,19 @@
 | Ops | Monitor prompt quality dashboards. Respond to regressions. Add test cases from production. |
 
 **This role is the hardest to hire for.** Prompt engineering for agentic systems is a new discipline. Ideal candidates have:
+
 - Built and iterated on system prompts for production agents
 - Experience measuring prompt quality quantitatively (not just "looks better")
 - Understanding of how prompts interact with tool calling (the LLM must know when to call a tool vs. reason in-text)
 
 A strong senior engineer from the Goose/Agent role can grow into this.
 
----
+______________________________________________________________________
 
 ### 5. Frontend/Dashboard Engineer
 
 **What they do:**
+
 - Build the `agent-dashboard` Goose extension (Phase 4) using `apps__create_app` or a standalone framework
 - Implement 6 views: Session Explorer, Correlation Tree, Live Minion Status, Tool Call Inspector, Prompt Viewer, Governance Config
 - Read from Table Storage and Log Analytics APIs
@@ -142,6 +152,7 @@ A strong senior engineer from the Goose/Agent role can grow into this.
 - Build the governance config editor with validation and PR flow
 
 **Skills:**
+
 - **Must have:** Frontend development (React/Vue/Svelte). Data visualization (D3.js or similar — for correlation tree). REST API consumption. Azure SDK for JS (Table Storage queries).
 - **Nice to have:** Experience with observability dashboards. UX design.
 
@@ -152,11 +163,12 @@ A strong senior engineer from the Goose/Agent role can grow into this.
 | 4 | Build full dashboard. Iterate on UX with feedback from operators. |
 | Ops | Bug fixes. Feature requests from operators. |
 
----
+______________________________________________________________________
 
 ### 6. Security Engineer
 
 **What they do:**
+
 - Review tool allowlists and path scopes for gaps
 - Audit Key Vault RBAC and secret rotation
 - Review managed identity role assignments for least privilege
@@ -166,6 +178,7 @@ A strong senior engineer from the Goose/Agent role can grow into this.
 - Review governance config changes for security implications
 
 **Skills:**
+
 - **Must have:** Azure security (RBAC, managed identity, Key Vault, NSGs). API security. LLM security concepts (prompt injection, data exfiltration).
 - **Nice to have:** MCP protocol security. Agent framework security.
 
@@ -178,11 +191,12 @@ A strong senior engineer from the Goose/Agent role can grow into this.
 | 4 | Full security review before production. Multi-tenancy isolation testing. |
 | Ops | Ongoing security monitoring. Respond to Defender for Cloud alerts. |
 
----
+______________________________________________________________________
 
 ### 7. QA/Test Engineer
 
 **What they do:**
+
 - Write and maintain unit tests (orchestrator components, toolshed components)
 - Write and maintain integration tests (mock MCP servers, pipeline scenarios)
 - Build and maintain the prompt quality test harness
@@ -192,6 +206,7 @@ A strong senior engineer from the Goose/Agent role can grow into this.
 - Run cross-platform parity tests (GitHub vs. ADO)
 
 **Skills:**
+
 - **Must have:** Strong TypeScript or Python testing. Integration test design. Mock server design. Familiarity with at least one test framework (Jest, pytest, etc.).
 - **Nice to have:** Chaos engineering experience (k6, Artillery, Gremlin). Prompt evaluation experience.
 
@@ -204,11 +219,12 @@ A strong senior engineer from the Goose/Agent role can grow into this.
 | 4 | Write chaos tests. Performance tests. Cross-platform parity tests. Full test suite. |
 | Ops | Maintain test suite. Add regression tests from production incidents. |
 
----
+______________________________________________________________________
 
 ### 8. DevOps/CI/CD Engineer
 
 **What they do:**
+
 - Design and implement GitHub Actions CI/CD pipelines
 - Set up OIDC federation to Azure
 - Container image build and ACR push
@@ -218,6 +234,7 @@ A strong senior engineer from the Goose/Agent role can grow into this.
 - Set up branch protection rules and required status checks
 
 **Skills:**
+
 - **Must have:** GitHub Actions. Docker. Azure CLI. Bicep or Terraform. OIDC/workload identity.
 - **Nice to have:** Azure Container Apps CI/CD. Canary deployment patterns.
 
@@ -230,11 +247,12 @@ A strong senior engineer from the Goose/Agent role can grow into this.
 | 4 | Production CI/CD hardening. Secret rotation workflow. |
 | Ops | Maintain pipelines. Debug deployment failures. |
 
----
+______________________________________________________________________
 
 ### 9. Product Owner
 
 **What they do:**
+
 - Define which intents the orchestrator should handle first
 - Prioritize MCP server integrations (GitHub before ADO? ServiceNow before Jira?)
 - Define error messaging UX (what does the user see when a pipeline fails?)
@@ -243,6 +261,7 @@ A strong senior engineer from the Goose/Agent role can grow into this.
 - Decide when the framework is ready for production
 
 **Skills:**
+
 - **Must have:** Product management. Understanding of developer workflows (PRs, tickets, code review). Familiarity with Slack/Teams bot UX.
 - **Nice to have:** Experience with agent/AI products.
 
@@ -255,7 +274,7 @@ A strong senior engineer from the Goose/Agent role can grow into this.
 | 4 | Validate dashboard UX. Sign off on production readiness. |
 | Ops | Continuous prioritization from user feedback. |
 
----
+______________________________________________________________________
 
 ## Team Size Scenarios
 
@@ -287,12 +306,13 @@ A strong senior engineer from the Goose/Agent role can grow into this.
 ### Well-Resourced Team (8+ people)
 
 As above, plus:
+
 - Dedicated Security Engineer throughout
 - Dedicated Product Owner
 - Second Prompt/LLM Engineer (one per minion family)
 - Second QA/Test Engineer (one for automation, one for manual/exploratory)
 
----
+______________________________________________________________________
 
 ## Skill Gaps to Watch For
 
@@ -306,7 +326,7 @@ The hardest roles to fill:
 
 Mitigation: hire strong generalists. Goose extensions, MCP servers, and agent prompts are all learnable by a good engineer in 1–2 weeks.
 
----
+______________________________________________________________________
 
 ## Phase-by-Phase Team Focus
 
@@ -352,7 +372,7 @@ gantt
 
 **Phase 1** is infrastructure-heavy (Azure Engineer + MCP Engineer). **Phases 2–3** are agent-heavy (Goose Engineer + Prompt Engineer). **Phase 4** brings in the Frontend Engineer and ramps QA.
 
----
+______________________________________________________________________
 
 ## Shared Responsibilities
 

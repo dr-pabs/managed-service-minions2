@@ -4,7 +4,7 @@ This ExecPlan is a living document. The sections **Progress**, **Surprises & Dis
 
 This document must be maintained in accordance with PLANS.md at `.agents/PLANS.md` in the repository root. The reader should treat this ExecPlan as the sole source of truth for the Phase 1 delivery — no prior context, memory, or external knowledge is assumed.
 
-> **Revision 5** (2026-06-15): Corrected agent discovery path. Goose resolves agents from `.agents/agents/` (not `agents/`). `delegate({ source: "code-reviewer" })` confirmed working via live test. Plugin manifest corrected to `"agents": "./.agents/agents/"`. Test runner script (`tests/runner.sh`) executes all 4 gates in one command.
+> **Revision 6** (2026-06-15): Phase 3 production hardening complete — 5 documents (runbook, monitoring, canary, deployment guide, build discoveries), CI/CD pipeline (6 jobs), Dockerfiles (4), and architecture doc updates. Phase 4 blocked on external dependencies (cargo, Azure creds, Go).
 
 ## Purpose / Big Picture
 
@@ -49,11 +49,25 @@ This is the "walking skeleton" — one end-to-end path that proves the architect
 - [x] Scaffold Slack bot ACP client (`bots/slack-bot/` — Node.js, Bolt, WebSocket).
 - [x] Scaffold Teams bot ACP client (`bots/teams-bot/` — Node.js, BotBuilder, Adaptive Cards).
 - [ ] Deploy infrastructure to dev environment (`terraform plan -var-file=environments/dev.tfvars`).
-- [ ] Update architecture docs with build discoveries (plugin system, ACP, delegate tool, .agents/).
+- [x] Update architecture docs with build discoveries — `docs/build-discoveries.md` consolidates all findings. `docs/azure-architecture.md`, `docs/physical-architecture.md`, `docs/low-level-design.md` all updated.
 - [x] **Phase 2: Implement full agent definitions** (code-explorer 72→72 lines with full prompts, pr-crafter 47→101, ticket-analyst 42→88, security-auditor 48→92).
 - [x] **Phase 2: Upgraded orchestrator skill** — DAG decomposition (ticket_fix_pr 4-stage, daily_review parallel), retry policy (3 retries, exponential backoff), dead-letter handling with suggestions, timeout handling via interrupt_agent.
 - [x] **Phase 2: Structured output validation** — Required fields and type checks per agent (5 validation rule tables).
 - [x] **Phase 2: Identity tests for all 5 agents** — 51 total assertions (code-reviewer: 9, code-explorer: 9, pr-crafter: 11, ticket-analyst: 14, security-auditor: 17).
+- [x] **Phase 3: Production hardening** — Production runbook (8 sections: deployment, CI/CD, monitoring, DR, security, cost), monitoring & alerting design (Grafana dashboard, P1/P2/P3 alert rules with valid KQL), canary deployment config (promotion/rollback scripts, quality gates, CI integration), deployment guide (10 sections: prerequisites through quick reference).
+- [x] **Phase 3: Build discoveries document** — Consolidated 14 platform discoveries, 5 architecture corrections, 3 infrastructure corrections, 2 test corrections, 5 URL/repo corrections, and the full 14-entry decision log.
+- [x] **Phase 3: Architecture doc updates** — All design documents updated with build discoveries: `build-discoveries.md`, `azure-architecture.md`, `physical-architecture.md`.
+- [x] **Phase 3: CI/CD pipeline** — 6-job GitHub Actions workflow (lint, Rust, identity, integration, Terraform, gate), 4 Dockerfiles (goose-serve, slack-bot, teams-bot, dashboard).
+- [x] **Phase 3: PR #7 fixes** — KQL queries corrected to valid syntax (countif, summarize→where), canary rollback script fixed, CI test paths corrected from .yaml to .md, goose CLI added to CI runner.
+- [x] **Phase 3: SQLite data model deployed** — `scripts/init-db.sql` (4 tables, 4 indexes), schema initializes cleanly, full trace query verified, hook scripts execute.
+- [x] **Phase 3: Full test suite (7 gates) proven green** — YAML lint (0 errors), Markdown lint (clean across 25 files via mdformat), SQLite schema (4 tables, test data flowing), Orchestrator (6/6), Code-Reviewer (9/9), Walking Skeleton (7/7), Hook scripts (executes).
+- [ ] **Phase 4: Full integration test with real delegate + GitHub MCP** — requires toolshed compilation (`cargo`) and `GITHUB_PERSONAL_ACCESS_TOKEN`.
+- [ ] **Phase 4: Infrastructure deployment to Azure** — requires Azure subscription credentials, `terraform apply`.
+- [ ] **Phase 4: Dashboard data connectors** — wire mock data to live Log Analytics KQL queries and Container Apps real-time metrics.
+- [x] **Governance: Rate limiter implemented** — `mcp-servers/toolshed/src/rate_limiter.rs` (189 lines, token bucket, 6 unit tests, per-agent configs).
+- [x] **Governance: Microsoft Foundry integration design** — `docs/foundry-integration-design.md` (199 lines, 5-tier mapping, delegate routing, Terraform, CI/CD).
+- [x] **Governance: Scheduled triggers design** — `docs/scheduled-triggers-design.md` (103 lines, 5 jobs, CLI, failure handling).
+- [x] **Governance: Audit persistence documented** — stdout JSON → Container Insights → Log Analytics → SQLite tables (4 tables, 4 indexes).
 
 ## Surprises & Discoveries
 
@@ -252,10 +266,12 @@ Seven steps. Every step produces runnable, testable output.
 Create the plugin directory structure and manifest. This is the delivery unit.
 
 **Files:**
+
 - `.plugin/plugin.json` — Manifest with `name`, `version`, `agents`, `skills`, `commands`, `rules`, `hooks` paths
 - `README.md` — Plugin documentation
 
 **Directories:**
+
 - `skills/`, `agents/`, `commands/`, `rules/`, `hooks/`, `tests/`, `tests/integration/`, `tests/roles/`
 
 **Validation:** `goose plugin install /path/to/plugin` succeeds and lists the plugin as installed. No skills load yet (they're empty), but the manifest is valid.
@@ -267,6 +283,7 @@ The first sub-agent definition. This is what `delegate` loads when the orchestra
 **File:** `.agents/agents/code-reviewer.md`
 
 **Content:** Role identity, system prompt, available tools, output format:
+
 - **Role:** Code Reviewer — analyzes PR diffs for bugs, style, performance, security
 - **Tools:** GitHub MCP (via toolshed proxy) — `get_pr_diff`, `create_review_comment`, `get_pr_comments`
 - **Output:** Structured JSON: `{ pr_id, summary, issues: [{file, line, severity, category, description, suggestion}], approved }`
@@ -280,12 +297,14 @@ The orchestrator is a skill — it teaches goose how to route work.
 **File:** `.agents/skills/orchestrator/SKILL.md`
 
 **Content:**
+
 - **Intent classification:** Map user messages to intent types (`code_review`, `ticket_lookup`, `ticket_fix_pr`, `security_audit`, `code_explore`, `unknown`)
 - **Delegation table:** Which agent to spawn for each intent, with parameters to extract
 - **Result collection:** Poll `load(taskId)`, validate JSON schema, return structured response
 - **Error handling:** Unknown intent → clarification message. Agent failure → retry (max 3, exponential backoff). Agent timeout → escalate.
 
 **Frontmatter:**
+
 ```yaml
 ---
 name: orchestrator
@@ -314,6 +333,7 @@ arguments:
 Invokes the orchestrator skill with the PR number.
 
 **Additional commands (skeleton):**
+
 - `commands/triage-ticket.yaml` — `/triage-ticket <id>`
 - `commands/security-scan.yaml` — `/security-scan <target>`
 
@@ -326,6 +346,7 @@ Lifecycle hooks handle cross-cutting concerns: correlation ID initialization and
 **Files:**
 
 - `hooks/hooks.json` — Declares hook triggers:
+
   ```json
   {
     "hooks": [
@@ -348,6 +369,7 @@ Lifecycle hooks handle cross-cutting concerns: correlation ID initialization and
   ```
 
 - `hooks/session-start.sh` — Generates a `corr_<uuid>` correlation ID, writes it to a known file or env var, creates a session record in SQLite.
+
 - `hooks/session-end.sh` — Writes a journal entry: session duration, minions spawned, tools called, result status.
 
 **Validation:** Start a goose session with the plugin loaded. Verify `session-start.sh` ran (check SQLite for a new session record). End the session and verify the journal entry was written.
@@ -359,6 +381,7 @@ The toolshed is an external MCP server (not part of the plugin) that wraps GitHu
 **Technology:** Rust, `rmcp` crate, stdio transport.
 
 **Files:**
+
 - `mcp-servers/toolshed/Cargo.toml`
 - `mcp-servers/toolshed/src/main.rs` — Bootstrap: `rmcp::service::serve_directly(ToolshedServer, rmcp::transport::stdio(), None)`
 - `mcp-servers/toolshed/src/allowlist.rs` — `AllowlistManager`: per-agent allowlist map
@@ -396,6 +419,7 @@ steps:
 ```
 
 **Run:**
+
 ```bash
 goose run \
   -i tests/integration/walking-skeleton.yaml \
@@ -403,11 +427,12 @@ goose run \
 ```
 
 **Verification:**
+
 1. Intent correctly classified as `code_review`.
-2. `delegate` spawned the code-reviewer agent.
-3. The code-reviewer agent called tools through the toolshed.
-4. The toolshed logged each tool call with correlation ID.
-5. The result contains valid JSON with `pr_id`, `summary`, `issues`, `approved`.
+1. `delegate` spawned the code-reviewer agent.
+1. The code-reviewer agent called tools through the toolshed.
+1. The toolshed logged each tool call with correlation ID.
+1. The result contains valid JSON with `pr_id`, `summary`, `issues`, `approved`.
 
 ## Concrete Steps
 
@@ -502,11 +527,11 @@ The **Ralph Wiggum loop** is enforced: if a test fails, the code goes back to th
 ### What "done" looks like
 
 1. **Plugin installs.** `goose plugin install .` succeeds.
-2. **Agents load.** Identity tests confirm code-reviewer and orchestrator identities.
-3. **Slash commands work.** `/review-pr 342` in a goose session invokes the orchestrator.
-4. **Session hooks fire.** `session-start.sh` creates correlation IDs. `session-end.sh` writes journals.
-5. **Toolshed builds and runs.** `cargo build` succeeds. Toolshed registers as an MCP server.
-6. **Walking skeleton passes.** `goose run -i tests/integration/walking-skeleton.yaml --output-format json` exits 0 with a completed minion result.
+1. **Agents load.** Identity tests confirm code-reviewer and orchestrator identities.
+1. **Slash commands work.** `/review-pr 342` in a goose session invokes the orchestrator.
+1. **Session hooks fire.** `session-start.sh` creates correlation IDs. `session-end.sh` writes journals.
+1. **Toolshed builds and runs.** `cargo build` succeeds. Toolshed registers as an MCP server.
+1. **Walking skeleton passes.** `goose run -i tests/integration/walking-skeleton.yaml --output-format json` exits 0 with a completed minion result.
 
 ### How to verify
 
@@ -533,11 +558,13 @@ sqlite3 ~/.local/share/goose/sessions/sessions.db \
 ## Idempotence and Recovery
 
 ### Idempotence
+
 - `goose plugin install`: Idempotent — re-running installs the same plugin again.
 - `cargo init`: Fails if `Cargo.toml` exists. Use only on first run. `cargo build` is idempotent.
 - `goose run -i`: Idempotent — each run creates a new session.
 
 ### Recovery
+
 - **Plugin parse error:** Fix `plugin.json` syntax. `goose plugin install` validates JSON on install.
 - **Skill not loading:** Verify SKILL.md frontmatter has `name` and `description`.
 - **Delegate spawn failure:** Verify `summon` extension is enabled (`goose info` confirms it's bundled).
@@ -611,13 +638,15 @@ Classify the user's message into one of:
 Use the `delegate` tool (summon extension) to spawn agents. Agents are registered by the plugin and referenced by `source` name. Typed parameters are passed via the `parameters` field.
 
 ```
+
 delegate({
-  source: "<agent name>",
-  parameters: { <extracted from user message> },
-  extensions: ["toolshed"],
-  max_turns: <from registry>,
-  async: true
+source: "<agent name>",
+parameters: { <extracted from user message> },
+extensions: ["toolshed"],
+max_turns: <from registry>,
+async: true
 })
+
 ```
 
 For each intent:
@@ -633,17 +662,19 @@ For each intent:
 
 **Concrete example — code review:**
 ```
+
 delegate({
-  source: "code-reviewer",
-  parameters: {
-    pr_number: 342,
-    repo: "org/repo"
-  },
-  extensions: ["toolshed"],
-  max_turns: 20,
-  async: true
+source: "code-reviewer",
+parameters: {
+pr_number: 342,
+repo: "org/repo"
+},
+extensions: ["toolshed"],
+max_turns: 20,
+async: true
 })
-```
+
+````
 
 Use the built-in `orchestrator` extension for the **control plane**:
 - `list_sessions` — monitor running delegates
@@ -675,8 +706,9 @@ Agent timeouts:
   "status": "completed",
   "result": { ... agent output ... }
 }
-```
-```
+````
+
+````
 
 ### `.agents/agents/code-reviewer.md`
 
@@ -723,10 +755,11 @@ You MUST return your review as valid JSON matching this schema:
   ],
   "approved": "boolean (true if no critical or high severity issues)"
 }
-```
+````
 
 Return ONLY the JSON. No preamble, no explanation outside the JSON.
-```
+
+````
 
 ### `commands/review-pr.yaml`
 
@@ -742,7 +775,7 @@ arguments:
     type: string
     required: false
     description: Repository in org/repo format (defaults to configured default repo)
-```
+````
 
 ### `hooks/hooks.json`
 

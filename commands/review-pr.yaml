@@ -1,3 +1,4 @@
+---
 name: review-pr
 description: Review a pull request
 arguments:
@@ -8,4 +9,4 @@ arguments:
   - name: repo
     type: string
     required: false
-    description: Repository in org/repo format (defaults to configured default repo)
+    description: Repository in org/repo format

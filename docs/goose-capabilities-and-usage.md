@@ -1,20 +1,20 @@
 # Goose Agent Harness — Capabilities Analysis
 
-> **Date:** 2026-06-06  
+> **Date:** 2026-06-06\
 > **Purpose:** Clarify what Goose provides, what the framework uses, and what is deliberately unused.
 
----
+______________________________________________________________________
 
 ## Table of Contents
 
 1. [What Goose Is](#what-goose-is)
-2. [Goose Capabilities We Use](#goose-capabilities-we-use)
-3. [How Gooses Harness Powers the Framework](#how-gooses-harness-powers-the-framework)
-4. [Goose Capabilities Deliberately Unused](#goose-capabilities-deliberately-unused)
-5. [Gap Analysis — What We Build Ourselves](#gap-analysis--what-we-build-ourselves)
-6. [Summary Matrix](#summary-matrix)
+1. [Goose Capabilities We Use](#goose-capabilities-we-use)
+1. [How Gooses Harness Powers the Framework](#how-gooses-harness-powers-the-framework)
+1. [Goose Capabilities Deliberately Unused](#goose-capabilities-deliberately-unused)
+1. [Gap Analysis — What We Build Ourselves](#gap-analysis--what-we-build-ourselves)
+1. [Summary Matrix](#summary-matrix)
 
----
+______________________________________________________________________
 
 ## What Goose Is
 
@@ -29,7 +29,7 @@ Goose is an **LLM-powered agent runtime** that provides:
 
 Goose is *not* a workflow engine, a message queue, a database, or a multi-agent orchestrator. It provides the *primitives* — our framework composes them into the architecture.
 
----
+______________________________________________________________________
 
 ## Goose Capabilities We Use
 
@@ -62,7 +62,7 @@ Goose is *not* a workflow engine, a message queue, a database, or a multi-agent 
 | **`apps__create_app`** | Generate sandboxed HTML/CSS/JS apps from a description | Used to build the `agent-dashboard` extension (Phase 4) — a web UI for session replay, correlation tree viewing, and governance config. |
 | **`apps__iterate_app`** | Improve an existing app based on feedback | Used for iterative development of the `agent-dashboard` during Phase 4. |
 
----
+______________________________________________________________________
 
 ## How Goose's Harness Powers the Framework
 
@@ -115,7 +115,7 @@ Goose is *not* a workflow engine, a message queue, a database, or a multi-agent 
 | Message platform adapters | `slack-bot`, `teams-bot` extensions | Goose extensions with HTTP ingress |
 | Scheduling recipes | Goose `platform__manage_schedule` | Cron expressions → orchestrator invocation |
 
----
+______________________________________________________________________
 
 ## Goose Capabilities Deliberately Unused
 
@@ -148,7 +148,7 @@ These Goose capabilities exist but we do not use them in the framework. Each has
 | **`memory`** | Teach Goose preferences as you go | Our framework is multi-tenant and stateless per-minion. Per-user preferences would add complexity without clear benefit. Session memory is handled by `chatrecall`. |
 | **`code_execution`** | Make extension calls through code execution | Our minions call tools directly through the toolshed. Adding a code execution indirection would complicate the audit trail and allowlist enforcement. |
 
----
+______________________________________________________________________
 
 ## Gap Analysis — What We Build Ourselves
 
@@ -171,7 +171,7 @@ These capabilities do not exist in Goose and must be built entirely by the frame
 | **Grafana dashboards** | KQL-based panels for Overview, Minion Health, Cost, Security | Azure Managed Grafana (config) |
 | **Custom dashboard** | Session explorer, correlation tree, live status, governance editor | `agent-dashboard` extension (Phase 4) |
 
----
+______________________________________________________________________
 
 ## Summary Matrix
 
