@@ -50,6 +50,10 @@ This is the "walking skeleton" — one end-to-end path that proves the architect
 - [x] Scaffold Teams bot ACP client (`bots/teams-bot/` — Node.js, BotBuilder, Adaptive Cards).
 - [ ] Deploy infrastructure to dev environment (`terraform plan -var-file=environments/dev.tfvars`).
 - [ ] Update architecture docs with build discoveries (plugin system, ACP, delegate tool, .agents/).
+- [x] **Phase 2: Implement full agent definitions** (code-explorer 72→72 lines with full prompts, pr-crafter 47→101, ticket-analyst 42→88, security-auditor 48→92).
+- [x] **Phase 2: Upgraded orchestrator skill** — DAG decomposition (ticket_fix_pr 4-stage, daily_review parallel), retry policy (3 retries, exponential backoff), dead-letter handling with suggestions, timeout handling via interrupt_agent.
+- [x] **Phase 2: Structured output validation** — Required fields and type checks per agent (5 validation rule tables).
+- [x] **Phase 2: Identity tests for all 5 agents** — 51 total assertions (code-reviewer: 9, code-explorer: 9, pr-crafter: 11, ticket-analyst: 14, security-auditor: 17).
 
 ## Surprises & Discoveries
 
@@ -86,6 +90,8 @@ This is the "walking skeleton" — one end-to-end path that proves the architect
 - **2026-06-14 — `apps__create_app` and `extensionmanager__*` tools are available.** The Apps extension provides dashboard scaffolding (`create_app`, `delete_app`, `iterate_app`, `list_apps`). Extension Manager provides `manage_extensions`, `search_available_extensions`, `list_resources`, `read_resource`. Both relevant for Phase 4 but available now.
 
 - **2026-06-14 — Goose discovers agent sources from `.agents/agents/`, not `agents/`.** `delegate({ source: "code-reviewer" })` failed with `Source 'code-reviewer' not found` until agents were copied to `.agents/agents/`. The plugin must register `"agents": "./.agents/agents/"` in `plugin.json`. The `agents/` directory at repo root is invisible to delegate.
+
+- **2026-06-15 — Agent .md files are the complete contract.** Expanding 4 agent skeletons to full implementations required no code changes — just richer Markdown. The agent `.md` file format (YAML frontmatter + Markdown body) is the entire agent definition. Tools, output schemas, process descriptions, and guidelines all live in the same file. This matches office-town's `boss.md`/`worker.md` pattern and validates our architecture: agents are entirely defined in Markdown, loaded by `delegate` at runtime.
 
 ### Design corrections (from real goose source)
 
