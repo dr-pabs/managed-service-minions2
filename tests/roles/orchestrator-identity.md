@@ -5,7 +5,7 @@
 
 You are a test runner for the Goose Agent Framework orchestrator skill.
 
-The orchestrator skill is loaded from `skills/orchestrator/SKILL.md`. Your job is to verify it correctly classifies user intents.
+The orchestrator skill is loaded from `.agents/skills/orchestrator/SKILL.md`. Your job is to verify it correctly classifies user intents.
 
 ## Test Cases
 
@@ -37,7 +37,7 @@ For each test case below, send the input to the orchestrator (or simulate the or
 
 ## Instructions
 
-1. For each test case, classify the input according to the orchestrator's intent mapping in `skills/orchestrator/SKILL.md`.
+1. For each test case, classify the input according to the orchestrator's intent mapping in `.agents/skills/orchestrator/SKILL.md`.
 2. Compare your classification to the expected intent.
 3. Return a JSON report:
 

@@ -94,7 +94,7 @@ flowchart LR
 
 **Container image:**
 
-```
+```text
 gooseframework.azurecr.io/orchestrator:latest
 ├── Base: Goose runtime (Node.js or Python)
 ├── Extensions:
@@ -221,7 +221,7 @@ graph TB
 
 Three stores, three purposes. Table Storage for the append-only immutable tool call log. Blob Storage for large artifacts (full minion outputs, diffs) and SQLite backups. SQLite for hot session state — local to the orchestrator container, backed up every 15 minutes, restored on container start.
 
-```
+```text
 Storage Account: stgooseframework
 ├── Table: ToolCallLog
 │   ├── Partition Key: {correlation_id}
@@ -247,7 +247,7 @@ Storage Account: stgooseframework
 
 ### SQLite (ephemeral, per orchestrator replica)
 
-```
+```text
 Location: /data/goose-sessions.db (within container)
 Size: ~10–50 MB typical, grows with active sessions
 Backup: WAL checkpoint every 15 minutes → Blob (sqlite-backups container)
@@ -304,7 +304,7 @@ All well within free/cheapest tier limits.
 
 ### Key Vault: `kv-goose-framework`
 
-```
+```text
 Secret: github-pat            → GitHub MCP authentication
 Secret: ado-pat               → Azure DevOps MCP authentication
 Secret: servicenow-password   → ServiceNow MCP authentication
@@ -449,7 +449,7 @@ graph TB
 
 ### Horizontal Scaling
 
-```
+```text
                      KEDA Scaler
                          │
               ┌──────────┴──────────┐
@@ -605,5 +605,3 @@ graph TB
 **8 Bicep modules, one entry point.** `main.bicep` orchestrates the deployment by passing parameters to each module. Modules that require networking (Container Apps, Service Bus, Storage, Key Vault, AI Foundry) depend on `networking.bicep` for VNet + subnet IDs. `identity.bicep` is a dependency for Container Apps (managed identity assignment) and is run first.
 
 All infrastructure is version-controlled in the same Git repo as the application code. GitHub Actions runs `az deployment group create` with the appropriate parameter file (`dev.bicepparam`, `staging.bicepparam`, `prod.bicepparam`).
-
-

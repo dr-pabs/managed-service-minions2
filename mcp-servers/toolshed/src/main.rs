@@ -9,9 +9,7 @@
 // Build: cargo build --release --manifest-path mcp-servers/toolshed/Cargo.toml
 // Register: goose configure --add-extension toolshed --type stdio --cmd "<path>/goose-toolshed"
 
-use rmcp::service::serve_directly;
 use rmcp::transport::stdio;
-use tracing_subscriber;
 
 mod allowlist;
 mod logger;
@@ -28,8 +26,8 @@ async fn main() -> anyhow::Result<()> {
     tracing::info!("toolshed starting");
 
     let server = proxy::ToolshedServer::new();
-
-    serve_directly(server, stdio::stdio(), None).await?;
+    let service = rmcp::serve_server(server, stdio()).await?;
+    service.waiting().await?;
 
     Ok(())
 }
