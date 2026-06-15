@@ -5,7 +5,7 @@
 # Usage: bash tests/runner.sh
 # Requires: goose CLI, yamllint (pip install yamllint), python3
 
-set -uo pipefail
+set -euo pipefail
 cd "$(dirname "$0")/.."
 
 PASS=0
