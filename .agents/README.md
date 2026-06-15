@@ -13,4 +13,4 @@ This folder contains agent-role definitions for the Goose Agent Framework delive
 - [devops-agent.md](devops-agent.md)
 - [product-analyst-agent.md](product-analyst-agent.md)
 
-These definitions align with the agent roles described in [../agent-led-development.md](../agent-led-development.md).
+These definitions align with the agent roles described in [../docs/agent-led-development.md](../docs/agent-led-development.md).

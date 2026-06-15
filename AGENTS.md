@@ -5,10 +5,10 @@
 This folder contains the design, delivery, and governance artifacts for the Goose Agent Framework. Most of the work here is specification- and architecture-oriented rather than compiled application code.
 
 Primary source documents include:
-- `high-level-design.md` — system architecture and core capabilities
-- `delivery-specification.md` — scope, workstreams, phases, and acceptance criteria
-- `testing-strategy.md` — test pyramid, integration plans, and quality controls
-- `agent-led-development.md` — agent/role mapping and operating model
+- `docs/high-level-design.md` — system architecture and core capabilities
+- `docs/delivery-specification.md` — scope, workstreams, phases, and acceptance criteria
+- `docs/testing-strategy.md` — test pyramid, integration plans, and quality controls
+- `docs/agent-led-development.md` — agent/role mapping and operating model
 - `adrs/` — architecture decisions and governance rationale
 
 When making changes, prefer to keep these artifacts aligned with one another and with the ADRs.

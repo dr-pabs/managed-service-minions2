@@ -17,4 +17,4 @@ Support files:
 - [skill-catalog.md](skill-catalog.md) — formal catalog of roles, competencies, and staffing patterns
 - [agent-prompt-templates.md](agent-prompt-templates.md) — reusable agent prompt starting points
 
-These skill folders are the canonical, triggerable skill definitions; the supporting docs summarize the same responsibilities described in [skills-and-roles.md](../skills-and-roles.md).
+These skill folders are the canonical, triggerable skill definitions; the supporting docs summarize the same responsibilities described in [skills-and-roles.md](../../docs/skills-and-roles.md).

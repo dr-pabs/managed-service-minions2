@@ -195,8 +195,8 @@ See `testing-strategy.md` for the complete quality framework.
 |---|---|
 | `docs/low-level-design.md` | Complete technical reference — Goose primitives, architecture, agent lifecycle, toolshed design, ACP protocol, security model |
 | `docs/execplan/phase-1-foundation.md` | Delivery execution plan with progress tracking, decision log, and concrete steps |
-| `testing-strategy.md` | Test pyramid, coverage mandate, CI enforcement rules |
-| `delivery-specification.md` | Scope, workstreams, phases, acceptance criteria |
+| `docs/testing-strategy.md` | Test pyramid, coverage mandate, CI enforcement rules |
+| `docs/delivery-specification.md` | Scope, workstreams, phases, acceptance criteria |
 | `adrs/` | 22 Architecture Decision Records |
 
 ## License
