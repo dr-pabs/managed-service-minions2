@@ -130,7 +130,7 @@ return {
 const prs = [341, 342, 343, 344, 345];
 const tasks = prs.map(pr => delegate({
   source: "code-reviewer",
-  parameters: { pr_number: pr },
+  parameters: { pr_number: pr, repo: "org/repo" },
   extensions: ["toolshed"], max_turns: 20, async: true
 }));
 
@@ -190,13 +190,17 @@ Each agent's output is validated against its expected JSON schema before being r
 
 ### Validation Rules by Agent
 
-| Agent | Required Fields | Type Checks |
+The orchestrator validates a **minimal required-field and type-check** on every agent output before returning it. Full schema validation (all fields, enum values, nested structures) is the responsibility of each agent, defined in its `.agents/agents/<name>.md` file. The orchestrator's check is a fast gate — it catches missing required fields and wrong types, but relies on agents to self-enforce their complete output contracts.
+
+| Agent | Minimal Required Fields | Type Checks |
 |---|---|---|
-| `code-reviewer` | `pr_id`, `summary`, `issues`, `approved` | `pr_id` (string), `issues` (array), `approved` (boolean) |
-| `code-explorer` | `query`, `found`, `findings`, `summary` | `found` (boolean), `findings` (array) |
-| `pr-crafter` | `ticket_id`, `branch`, `pr_url`, `status` | `status` ∈ {created, failed} |
+| `code-reviewer` | `pr_id`, `summary`, `issues`, `approved` | `pr_id` (string), `issues` (array of objects), `approved` (boolean) |
+| `code-explorer` | `query`, `found`, `findings`, `summary` | `found` (boolean), `findings` (array of objects) |
+| `pr-crafter` | `ticket_id`, `status` (if `status` is `"failed"`, `error` is also required) | `status` ∈ {created, failed} |
 | `ticket-analyst` | `ticket_id`, `system`, `title`, `status` | `system` ∈ {ado, jira}, `status` ∈ {open, in_progress, resolved, closed, blocked, reopened} |
 | `security-auditor` | `target`, `summary`, `findings`, `safe`, `total_findings` | `safe` (boolean), `total_findings` (integer) |
+
+> **Agent contract:** Each agent's complete output schema is defined in its agent `.md` file. See `.agents/agents/<name>.md` for all fields, their types, and optional/required status. The orchestrator's validation is a fast lane — agents are trusted to fulfill their full contract.
 
 ### Validation on Failure
 

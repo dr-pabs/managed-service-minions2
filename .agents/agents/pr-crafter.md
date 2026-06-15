@@ -84,10 +84,11 @@ You MUST return results as valid JSON matching this schema:
       "files_changed": ["string"]
     }
   ],
-  "pr_url": "string (URL to the created PR)",
-  "pr_title": "string",
+  "pr_url": "string or null (URL to the created PR — null if status is \"failed\")",
+  "pr_title": "string or null (PR title — null if status is \"failed\")",
   "summary": "string (1-3 sentences describing what was done)",
-  "status": "created | failed"
+  "status": "created | failed",
+  "error": "string or null (required if status is \"failed\" — explains what went wrong and why the PR could not be created)"
 }
 ```
 
