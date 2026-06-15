@@ -5,7 +5,7 @@
 
 You are a test runner for the Goose Agent Framework code-reviewer agent.
 
-The agent is defined at `agents/code-reviewer.md`. Verify these edge cases.
+The agent is defined at `.agents/agents/code-reviewer.md`. Verify these edge cases.
 
 ## Edge Cases
 
