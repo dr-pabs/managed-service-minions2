@@ -1,0 +1,15 @@
+{
+  "name": "goose-teams-bot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Teams bot ACP client for the Goose Agent Framework — bridges Teams messages to goose serve",
+  "main": "src/bot.js",
+  "scripts": {
+    "start": "node src/bot.js",
+    "test": "echo \"Tests: manual (requires Teams environment + Azure AD app registration)\""
+  },
+  "dependencies": {
+    "botbuilder": "^4.22.0",
+    "ws": "^8.16.0"
+  }
+}

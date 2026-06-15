@@ -1,0 +1,15 @@
+{
+  "name": "goose-slack-bot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Slack bot ACP client for the Goose Agent Framework — bridges Slack messages to goose serve",
+  "main": "src/bot.js",
+  "scripts": {
+    "start": "node src/bot.js",
+    "test": "echo \"Tests: manual (requires Slack workspace)\""
+  },
+  "dependencies": {
+    "@slack/bolt": "^4.0.0",
+    "ws": "^8.16.0"
+  }
+}
