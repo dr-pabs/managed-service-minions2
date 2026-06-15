@@ -42,6 +42,11 @@ This is the "walking skeleton" — one end-to-end path that proves the architect
 - [x] Validate orchestrator identity (6/6 intents correct).
 - [x] Validate code-reviewer identity (9/9 assertions passed).
 - [x] Validate delegate spawn (`source: "code-reviewer"` resolved via `.agents/agents/`).
+- [x] Scaffold Terraform infrastructure (`infra/` — providers, main, variables, outputs, 3 envs).
+- [x] Write Terratest validation (`infra/tests/infra_test.go` — 6 tests, 5 resource types).
+- [x] Move all top-level .md files into `docs/` — update cross-reference links.
+- [ ] Deploy infrastructure to dev environment (`terraform plan -var-file=environments/dev.tfvars`).
+- [ ] Update architecture docs with build discoveries (plugin system, ACP, delegate tool, .agents/).
 
 ## Surprises & Discoveries
 
