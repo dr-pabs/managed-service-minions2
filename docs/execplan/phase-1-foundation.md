@@ -54,6 +54,13 @@ This is the "walking skeleton" — one end-to-end path that proves the architect
 - [x] **Phase 2: Upgraded orchestrator skill** — DAG decomposition (ticket_fix_pr 4-stage, daily_review parallel), retry policy (3 retries, exponential backoff), dead-letter handling with suggestions, timeout handling via interrupt_agent.
 - [x] **Phase 2: Structured output validation** — Required fields and type checks per agent (5 validation rule tables).
 - [x] **Phase 2: Identity tests for all 5 agents** — 51 total assertions (code-reviewer: 9, code-explorer: 9, pr-crafter: 11, ticket-analyst: 14, security-auditor: 17).
+- [x] **Phase 3: Production hardening** — Production runbook (345 lines, 8 sections), monitoring & alerting design (228 lines, Grafana dashboard, KQL queries), canary deployment config (285 lines, promotion/rollback scripts), deployment guide (364 lines, 10 sections).
+- [x] **Phase 3: Build discoveries document** — 216 lines consolidating all platform discoveries, architecture corrections, and decision log.
+- [x] **Phase 3: Architecture doc updates** — Azure architecture, physical architecture, logical architecture updated with build discoveries.
+- [x] **Phase 3: CI/CD pipeline** — 6-job GitHub Actions workflow, 4 Dockerfiles.
+- [ ] **Phase 4: Full integration test with real delegate + GitHub MCP** — requires toolshed compilation and `GITHUB_PERSONAL_ACCESS_TOKEN`.
+- [ ] **Phase 4: Infrastructure deployment to Azure** — requires subscription credentials.
+- [ ] **Phase 4: Dashboard data connectors** — wire to live Log Analytics and Container Apps metrics.
 
 ## Surprises & Discoveries
 
