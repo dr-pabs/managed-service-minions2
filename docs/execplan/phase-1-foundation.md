@@ -4,7 +4,7 @@ This ExecPlan is a living document. The sections **Progress**, **Surprises & Dis
 
 This document must be maintained in accordance with PLANS.md at `.agents/PLANS.md` in the repository root. The reader should treat this ExecPlan as the sole source of truth for the Phase 1 delivery — no prior context, memory, or external knowledge is assumed.
 
-> **Revision 5** (2026-06-15): Corrected agent discovery path. Goose resolves agents from `.agents/agents/` (not `agents/`). `delegate({ source: "code-reviewer" })` confirmed working via live test. Plugin manifest corrected to `"agents": "./.agents/agents/"`. Test runner script (`tests/runner.sh`) executes all 4 gates in one command.
+> **Revision 6** (2026-06-15): Phase 3 production hardening complete — 5 documents (runbook, monitoring, canary, deployment guide, build discoveries), CI/CD pipeline (6 jobs), Dockerfiles (4), and architecture doc updates. Phase 4 blocked on external dependencies (cargo, Azure creds, Go).
 
 ## Purpose / Big Picture
 
@@ -54,13 +54,14 @@ This is the "walking skeleton" — one end-to-end path that proves the architect
 - [x] **Phase 2: Upgraded orchestrator skill** — DAG decomposition (ticket_fix_pr 4-stage, daily_review parallel), retry policy (3 retries, exponential backoff), dead-letter handling with suggestions, timeout handling via interrupt_agent.
 - [x] **Phase 2: Structured output validation** — Required fields and type checks per agent (5 validation rule tables).
 - [x] **Phase 2: Identity tests for all 5 agents** — 51 total assertions (code-reviewer: 9, code-explorer: 9, pr-crafter: 11, ticket-analyst: 14, security-auditor: 17).
-- [x] **Phase 3: Production hardening** — Production runbook (345 lines, 8 sections), monitoring & alerting design (228 lines, Grafana dashboard, KQL queries), canary deployment config (285 lines, promotion/rollback scripts), deployment guide (364 lines, 10 sections).
-- [x] **Phase 3: Build discoveries document** — 216 lines consolidating all platform discoveries, architecture corrections, and decision log.
-- [x] **Phase 3: Architecture doc updates** — Azure architecture, physical architecture, logical architecture updated with build discoveries.
-- [x] **Phase 3: CI/CD pipeline** — 6-job GitHub Actions workflow, 4 Dockerfiles.
-- [ ] **Phase 4: Full integration test with real delegate + GitHub MCP** — requires toolshed compilation and `GITHUB_PERSONAL_ACCESS_TOKEN`.
-- [ ] **Phase 4: Infrastructure deployment to Azure** — requires subscription credentials.
-- [ ] **Phase 4: Dashboard data connectors** — wire to live Log Analytics and Container Apps metrics.
+- [x] **Phase 3: Production hardening** — Production runbook (8 sections: deployment, CI/CD, monitoring, DR, security, cost), monitoring & alerting design (Grafana dashboard, P1/P2/P3 alert rules with valid KQL), canary deployment config (promotion/rollback scripts, quality gates, CI integration), deployment guide (10 sections: prerequisites through quick reference).
+- [x] **Phase 3: Build discoveries document** — Consolidated 14 platform discoveries, 5 architecture corrections, 3 infrastructure corrections, 2 test corrections, 5 URL/repo corrections, and the full 14-entry decision log.
+- [x] **Phase 3: Architecture doc updates** — All design documents updated with build discoveries: `build-discoveries.md`, `azure-architecture.md`, `physical-architecture.md`.
+- [x] **Phase 3: CI/CD pipeline** — 6-job GitHub Actions workflow (lint, Rust, identity, integration, Terraform, gate), 4 Dockerfiles (goose-serve, slack-bot, teams-bot, dashboard).
+- [x] **Phase 3: PR #7 fixes** — KQL queries corrected to valid syntax (countif, summarize→where), canary rollback script fixed, CI test paths corrected from .yaml to .md, goose CLI added to CI runner.
+- [ ] **Phase 4: Full integration test with real delegate + GitHub MCP** — requires toolshed compilation (`cargo`), `GITHUB_PERSONAL_ACCESS_TOKEN`, and GitHub MCP server.
+- [ ] **Phase 4: Infrastructure deployment to Azure** — requires Azure subscription credentials, `terraform apply`.
+- [ ] **Phase 4: Dashboard data connectors** — wire mock data to live Log Analytics KQL queries and Container Apps real-time metrics.
 
 ## Surprises & Discoveries
 

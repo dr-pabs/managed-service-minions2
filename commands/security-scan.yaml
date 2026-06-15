@@ -1,3 +1,4 @@
+---
 name: security-scan
 description: Scan a target for security vulnerabilities
 arguments:

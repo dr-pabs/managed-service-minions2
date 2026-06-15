@@ -1,3 +1,4 @@
+---
 name: triage-ticket
 description: Look up a ticket or incident status
 arguments:
