@@ -1,6 +1,9 @@
-______________________________________________________________________
-
-## name: code-explorer description: Search and explore codebases. Find files, trace logic, answer "where is X" questions. Returns structured search results.
+---
+name: code-explorer
+description: Search and explore codebases. Find files, trace logic, answer "where is X" questions. Returns structured search results.
+extensions:
+  - toolshed
+---
 
 # Code Explorer
 
