@@ -1,27 +1,27 @@
 # Azure Architecture Design
 
-> **Date:** 2026-06-15  
-> **Status:** Updated for Phase 1 build discoveries  
+> **Date:** 2026-06-15\
+> **Status:** Updated for Phase 1 build discoveries\
 > **Complements:** [physical-architecture.md](./physical-architecture.md), [logical-architecture.md](./logical-architecture.md)
 
 > **Build discoveries (2026-06-15):** Goose 1.37.0 is deployed as `goose serve` (ACP server, port 3284), not as a library. The orchestration framework is a goose *plugin* installed via `goose plugin install`. The toolshed is a standalone Rust MCP server. Bot adapters are thin ACP WebSocket clients, not standalone webhook services. Agent definitions live in `.agents/agents/` (not `agents/`). Skills live in `.agents/skills/`. Scheduling uses `goose schedule` CLI, not `platform__manage_schedule`.
 
----
+______________________________________________________________________
 
 ## Table of Contents
 
 1. [Architecture Diagrams](#architecture-diagrams)
-2. [Resource Inventory](#resource-inventory)
-3. [Resource Sizing Rationale](#resource-sizing-rationale)
-4. [Networking Deep Dive](#networking-deep-dive)
-5. [Identity Deep Dive](#identity-deep-dive)
-6. [AI Foundry Deployment Strategy](#ai-foundry-deployment-strategy)
-7. [Security Baseline](#security-baseline)
-8. [Environments](#environments)
-9. [CI/CD Pipeline](#cicd-pipeline)
-10. [Operational Runbooks](#operational-runbooks)
+1. [Resource Inventory](#resource-inventory)
+1. [Resource Sizing Rationale](#resource-sizing-rationale)
+1. [Networking Deep Dive](#networking-deep-dive)
+1. [Identity Deep Dive](#identity-deep-dive)
+1. [AI Foundry Deployment Strategy](#ai-foundry-deployment-strategy)
+1. [Security Baseline](#security-baseline)
+1. [Environments](#environments)
+1. [CI/CD Pipeline](#cicd-pipeline)
+1. [Operational Runbooks](#operational-runbooks)
 
----
+______________________________________________________________________
 
 ## Architecture Diagrams
 
@@ -168,7 +168,7 @@ graph LR
     style bots fill:#fcf3cf,stroke:#d4ac0d,color:#1a1a1a
 ```
 
----
+______________________________________________________________________
 
 ## Resource Inventory
 
@@ -218,7 +218,7 @@ Examples:
 | **Managed Identity: Slack Bot** | `mi-slack-goosefw-{env}` | User-assigned | KV access |
 | **Managed Identity: Teams Bot** | `mi-teams-goosefw-{env}` | User-assigned | KV access |
 
----
+______________________________________________________________________
 
 ## Resource Sizing Rationale
 
@@ -233,8 +233,9 @@ Examples:
 | Stateful workloads | Not supported | Supported |
 
 **Our workload is event-driven and bursty.** Sessions arrive via Slack/Teams messages — sporadic, mostly during business hours. There is no steady stream of requests. Consumption plan's scale-to-zero saves $100+/month vs. Dedicated. Cold start latency is acceptable because:
+
 - Bots are always warm (1 replica minimum)
-- The orchestrator's first classification takes <1 second of LLM time; the 5–15s cold start is hidden behind the bot's "working..." acknowledgment
+- The orchestrator's first classification takes \<1 second of LLM time; the 5–15s cold start is hidden behind the bot's "working..." acknowledgment
 
 ### Why Service Bus Standard (not Premium)
 
@@ -264,11 +265,11 @@ Provisioned Throughput (PTU) guarantees capacity and predictable cost. Pay-as-yo
 | Scenario | Recommendation |
 |---|---|
 | Dev/Staging | PayGo — minimal cost |
-| Production, <200 sessions/day | PayGo — cheaper than PTU minimum |
+| Production, \<200 sessions/day | PayGo — cheaper than PTU minimum |
 | Production, >200 sessions/day | PTU for `reasoning` and `code_review` tiers |
 | Production, spiky | PayGo + alert if throttling detected |
 
----
+______________________________________________________________________
 
 ## Networking Deep Dive
 
@@ -361,9 +362,9 @@ flowchart LR
 | Slack (slack.com) | ca-slackbot-*.azurecontainerapps.io | Slack signing secret |
 | Teams (botframework.com) | ca-teamsbot-*.azurecontainerapps.io | Bot Framework auth |
 | GitHub Actions (CI/CD) | Azure Resource Manager (public) | OIDC federation |
-| Operator (dashboard) | ca-dashboard-*.azurecontainerapps.io | Azure AD (future) |
+| Operator (dashboard) | ca-dashboard-\*.azurecontainerapps.io | Azure AD (future) |
 
----
+______________________________________________________________________
 
 ## Identity Deep Dive
 
@@ -413,7 +414,7 @@ resource kvRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' =
 }
 ```
 
----
+______________________________________________________________________
 
 ## AI Foundry Deployment Strategy
 
@@ -492,13 +493,13 @@ flowchart LR
 ```
 
 1. New model version available in AI Foundry catalog
-2. Deploy new model to a new deployment (e.g., `fast-v2`)
-3. Update `provider.yaml` → point `fast` tier to `fast-v2`
-4. Deploy config change via CI/CD (no container rebuild needed if config is mounted)
-5. Monitor error rate and latency for 24 hours
-6. Delete old deployment (`fast-v1`)
+1. Deploy new model to a new deployment (e.g., `fast-v2`)
+1. Update `provider.yaml` → point `fast` tier to `fast-v2`
+1. Deploy config change via CI/CD (no container rebuild needed if config is mounted)
+1. Monitor error rate and latency for 24 hours
+1. Delete old deployment (`fast-v1`)
 
----
+______________________________________________________________________
 
 ## Security Baseline
 
@@ -517,6 +518,7 @@ flowchart LR
 ### Defender for Cloud
 
 Enable Defender for Cloud (free tier) on the subscription. Recommendations:
+
 - Enable encryption-at-rest for all storage accounts ✅ (default)
 - Enable soft delete for Key Vault ✅ (default, 90 days)
 - Enable soft delete for Blob Storage ✅ (7 days minimum)
@@ -533,7 +535,7 @@ Enable Defender for Cloud (free tier) on the subscription. Recommendations:
 | Slack signing secret | Never (Slack-managed) | — |
 | Teams bot password | Per org policy | Manual |
 
----
+______________________________________________________________________
 
 ## Environments
 
@@ -579,7 +581,7 @@ flowchart LR
 | Private endpoints | 3 (SB, Storage, KV) | 5 (+ACR, Foundry) | 6 (all) |
 | Scale-to-zero outside hours | Yes | Yes | No (1 replica minimum) |
 
----
+______________________________________________________________________
 
 ## CI/CD Pipeline
 
@@ -669,19 +671,19 @@ GitHub Repo: org/goose-agent-framework
 └── cost-report.yml     # Weekly cost summary to Teams
 ```
 
----
+______________________________________________________________________
 
 ## Operational Runbooks
 
 ### Runbook 1: Deploy a Model Tier Update
 
 1. Confirm new model is available in AI Foundry catalog
-2. Create new deployment in AI Foundry (e.g., `reasoning-v2`)
-3. Update `provider.yaml`: change `reasoning` tier deployment to `reasoning-v2`
-4. PR → review → merge
-5. CI/CD deploys config change (no container rebuild)
-6. Monitor Grafana dashboard "Cost & Capacity" for 24 hours
-7. If error rate < baseline, delete old deployment
+1. Create new deployment in AI Foundry (e.g., `reasoning-v2`)
+1. Update `provider.yaml`: change `reasoning` tier deployment to `reasoning-v2`
+1. PR → review → merge
+1. CI/CD deploys config change (no container rebuild)
+1. Monitor Grafana dashboard "Cost & Capacity" for 24 hours
+1. If error rate < baseline, delete old deployment
 
 ### Runbook 2: Investigate a Failed Session
 
@@ -717,14 +719,14 @@ flowchart TB
 ```
 
 1. User reports: "My PR review never completed"
-2. Open dashboard → Session Explorer
-3. Search by user or approximate time
-4. Click session → Correlation Tree
-5. Identify failed minion (red node)
-6. Click failed minion → see error: "ServiceNow MCP timeout"
-7. Check Grafana → Minion Health → ServiceNow latency spike
-8. If transient: click "Retry Failed" in dashboard
-9. If persistent: escalate to ServiceNow team; check MCP server health
+1. Open dashboard → Session Explorer
+1. Search by user or approximate time
+1. Click session → Correlation Tree
+1. Identify failed minion (red node)
+1. Click failed minion → see error: "ServiceNow MCP timeout"
+1. Check Grafana → Minion Health → ServiceNow latency spike
+1. If transient: click "Retry Failed" in dashboard
+1. If persistent: escalate to ServiceNow team; check MCP server health
 
 ### Runbook 3: Recover from Orchestrator Crash
 
@@ -762,13 +764,13 @@ flowchart TB
 ```
 
 1. Grafana alert: "Orchestrator replicas = 0" (Sev-1)
-2. Check Container Apps logs in Log Analytics
-3. If OOM: check SQLite size; increase memory allocation in Bicep
-4. If startup failure: check container image pull logs in ACR
-5. KEDA automatically respawns the container
-6. SQLite restored from latest Blob backup (<15 min RPO)
-7. Queued Service Bus messages re-delivered to new replica
-8. Review: adjust SQLite backup frequency if RPO is too high
+1. Check Container Apps logs in Log Analytics
+1. If OOM: check SQLite size; increase memory allocation in Bicep
+1. If startup failure: check container image pull logs in ACR
+1. KEDA automatically respawns the container
+1. SQLite restored from latest Blob backup (\<15 min RPO)
+1. Queued Service Bus messages re-delivered to new replica
+1. Review: adjust SQLite backup frequency if RPO is too high
 
 ### Runbook 4: Scale AI Foundry Capacity
 
@@ -804,9 +806,9 @@ flowchart TB
 ```
 
 1. Grafana alert: "AI Foundry throttling rate > 5%" (Sev-2)
-2. Check "Cost & Capacity" dashboard → throttling trend
-3. If sustained >2 hours: increase TPM for affected tier
+1. Check "Cost & Capacity" dashboard → throttling trend
+1. If sustained >2 hours: increase TPM for affected tier
    - PayGo: increase capacity in AI Foundry deployment settings
    - PTU: provision additional PTU units
-4. Update Bicep module → PR → deploy
-5. Monitor for 1 hour; if throttling persists, repeat
+1. Update Bicep module → PR → deploy
+1. Monitor for 1 hour; if throttling persists, repeat

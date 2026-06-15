@@ -64,10 +64,11 @@ CREATE TABLE IF NOT EXISTS allowlist_denials (
     agent           TEXT NOT NULL,
     tool_name       TEXT NOT NULL,                            -- The tool that was blocked
     params          TEXT,                                     -- What the minion tried to pass
-    reason          TEXT NOT NULL DEFAULT 'allowlist_denied', -- allowlist_denied | rate_limited
-    INDEX idx_denials_agent (agent),
-    INDEX idx_denials_timestamp (timestamp)
+    reason          TEXT NOT NULL DEFAULT 'allowlist_denied'  -- allowlist_denied | rate_limited
 );
+
+CREATE INDEX IF NOT EXISTS idx_denials_agent ON allowlist_denials(agent);
+CREATE INDEX IF NOT EXISTS idx_denials_timestamp ON allowlist_denials(timestamp);
 
 -- ── Indexes ─────────────────────────────────────────────────────────────
 

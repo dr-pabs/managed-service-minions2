@@ -1,24 +1,24 @@
 # Error Handling Patterns
 
-> **Date:** 2026-06-06  
-> **Status:** Draft  
+> **Date:** 2026-06-06\
+> **Status:** Draft\
 > **Scope:** Every failure mode and how the framework handles it
 
----
+______________________________________________________________________
 
 ## Table of Contents
 
 1. [Design Principles](#design-principles)
-2. [Failure Taxonomy](#failure-taxonomy)
-3. [Minion-Level Failures](#minion-level-failures)
-4. [Pipeline-Level Failures](#pipeline-level-failures)
-5. [Infrastructure Failures](#infrastructure-failures)
-6. [LLM Failures](#llm-failures)
-7. [User-Facing Error Communication](#user-facing-error-communication)
-8. [Error Recovery Patterns](#error-recovery-patterns)
-9. [Circuit Breakers](#circuit-breakers)
+1. [Failure Taxonomy](#failure-taxonomy)
+1. [Minion-Level Failures](#minion-level-failures)
+1. [Pipeline-Level Failures](#pipeline-level-failures)
+1. [Infrastructure Failures](#infrastructure-failures)
+1. [LLM Failures](#llm-failures)
+1. [User-Facing Error Communication](#user-facing-error-communication)
+1. [Error Recovery Patterns](#error-recovery-patterns)
+1. [Circuit Breakers](#circuit-breakers)
 
----
+______________________________________________________________________
 
 ## Design Principles
 
@@ -30,7 +30,7 @@
 | **Correlation ID is the lifeline** | Every error message includes the correlation ID. The user or operator can trace from the error to the full session tree in the dashboard. |
 | **Degrade, don't crash** | If AI Foundry is throttling, wait and retry. If ServiceNow MCP is down, tell the user — don't crash the orchestrator. |
 
----
+______________________________________________________________________
 
 ## Failure Taxonomy
 
@@ -61,7 +61,7 @@ mindmap
       Hallucinated tool call
 ```
 
----
+______________________________________________________________________
 
 ## Minion-Level Failures
 
@@ -158,7 +158,7 @@ Scenario: Minion calls "github.delete_repo" — a tool that doesn't exist.
 └─────────────────────────────────────────────────────────────┘
 ```
 
----
+______________________________________________________________________
 
 ## Pipeline-Level Failures
 
@@ -247,7 +247,7 @@ Scenario: Orchestrator requests approval for a PR merge.
 └─────────────────────────────────────────────────────────────┘
 ```
 
----
+______________________________________________________________________
 
 ## Infrastructure Failures
 
@@ -308,7 +308,7 @@ Scenario: Azure Service Bus is experiencing an outage.
 └─────────────────────────────────────────────────────────────┘
 ```
 
----
+______________________________________________________________________
 
 ## LLM Failures
 
@@ -397,7 +397,7 @@ Scenario: Code Reviewer receives a 15,000-line diff.
 └─────────────────────────────────────────────────────────────┘
 ```
 
----
+______________________________________________________________________
 
 ## User-Facing Error Communication
 
@@ -443,7 +443,7 @@ Action: The team has been alerted. Retrying automatically.
 Session: corr_a1b2c3 — [View Details]"
 ```
 
----
+______________________________________________________________________
 
 ## Error Recovery Patterns
 
@@ -479,7 +479,7 @@ Operator inspects via dashboard (correlation ID)
         └── Discard: acknowledge and close
 ```
 
----
+______________________________________________________________________
 
 ## Circuit Breakers
 

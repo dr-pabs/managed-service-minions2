@@ -1,20 +1,21 @@
 # Goose Core Changes Required
 
-> **Date:** 2026-06-06  
+> **Date:** 2026-06-06\
 > **Purpose:** Audit every framework capability and determine what requires a change to Goose core vs. what is implemented in extensions.
 
----
+______________________________________________________________________
 
 ## Audit Method
 
 For each framework capability, ask: *"Does Goose already provide the primitive we need, or do we need to modify Goose itself?"*
 
 Three categories:
+
 - 🟢 **Extension-only** — No Goose change. Built entirely in extensions.
 - 🟡 **Extension + config** — No code change to Goose. Uses existing primitives with new configuration.
 - 🔴 **Goose core change** — Goose itself must be modified.
 
----
+______________________________________________________________________
 
 ## Capability Audit
 
@@ -81,14 +82,16 @@ Three categories:
 | Managed identity to Azure services | 🟢 Extension | Azure SDK in the toolshed and orchestrator uses `DefaultAzureCredential`. Goose doesn't handle auth. |
 | Content safety filtering | 🟢 External | Azure AI Foundry applies content safety before the LLM sees the prompt. Goose doesn't implement this. |
 
----
+______________________________________________________________________
 
 ## Summary: Goose Core Changes Needed
 
 ### 🟢 No change needed (18 capabilities)
+
 The vast majority of the framework is extension code. Goose's existing primitives — `delegate`, `load(taskId)`, extensions, MCP tool spec, sessions, `platform__manage_schedule`, `apps__create_app` — cover everything.
 
 ### 🟡 Needs verification (3 capabilities)
+
 These *should* work with Goose's existing API, but need explicit testing:
 
 | # | Capability | Verification needed |
@@ -112,7 +115,7 @@ These *should* work with Goose's existing API, but need explicit testing:
 | **Structured output mode** | If `delegate` had a `response_format: json_schema` mode, Goose could enforce minion output schemas at the platform level rather than in the orchestrator. | Nice-to-have |
 | **Per-delegate rate limits** | If Goose could rate-limit tool calls per delegate (not just globally), the toolshed's rate limiter would be simpler. | Nice-to-have |
 
----
+______________________________________________________________________
 
 ## What We Do NOT Need Goose To Do
 

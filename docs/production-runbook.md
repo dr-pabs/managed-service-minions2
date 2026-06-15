@@ -1,10 +1,10 @@
 # Production Deployment Runbook
 
-> **Date:** 2026-06-15  
-> **Status:** Phase 3 — Production Ready  
+> **Date:** 2026-06-15\
+> **Status:** Phase 3 — Production Ready\
 > **Purpose:** Step-by-step operational procedures for deploying, monitoring, and recovering the Goose Agent Framework in production.
 
----
+______________________________________________________________________
 
 ## 1. Prerequisites
 
@@ -16,7 +16,7 @@
 - Docker installed for image builds
 - Access to `dr-pabs/managed-service-minions2` repo
 
----
+______________________________________________________________________
 
 ## 2. Initial Deployment
 
@@ -81,7 +81,7 @@ az containerapp show -n ca-slackbot-prod -g rg-goosefw-prod --query properties.r
 az containerapp show -n ca-teamsbot-prod -g rg-goosefw-prod --query properties.runningStatus
 ```
 
----
+______________________________________________________________________
 
 ## 3. CI/CD Pipeline
 
@@ -141,7 +141,7 @@ cd infra
 terraform apply -var-file=environments/prod.tfvars -var image_tag=$(git rev-parse --short HEAD) -auto-approve
 ```
 
----
+______________________________________________________________________
 
 ## 4. Monitoring & Alerting
 
@@ -199,59 +199,59 @@ toolshed_logs_CL
 | Orchestrator CPU/memory | Time series | Container Apps metrics |
 | Dead-letter queue depth | Time series | Service Bus metrics |
 
----
+______________________________________________________________________
 
 ## 5. Operational Runbooks
 
 ### 5.1 Investigate Failed Session
 
 1. **Get the correlation ID.** From the user's error message or Slack/Teams bot response.
-2. **Open the dashboard.** Navigate to `https://dashboard-url/sessions` and paste the `corr_` ID.
-3. **View the correlation tree.** Identify which minion failed and at what stage.
-4. **Inspect the minion's tool calls.** Check the toolshed audit log for the correlation ID.
-5. **Determine the failure mode:**
+1. **Open the dashboard.** Navigate to `https://dashboard-url/sessions` and paste the `corr_` ID.
+1. **View the correlation tree.** Identify which minion failed and at what stage.
+1. **Inspect the minion's tool calls.** Check the toolshed audit log for the correlation ID.
+1. **Determine the failure mode:**
    - **Timeout** → The PR may be too large. Retry with reduced scope or increase max_turns.
    - **Allowlist denial** → The minion tried to use an unauthorized tool. Check allowlist config.
    - **Invalid output** → The minion returned malformed JSON. Check prompt quality.
    - **Delegate failed** → Goose runtime error. Check Container App logs.
-6. **Retry or escalate.** If the same minion fails 3 times with the same error, escalate to the framework team.
+1. **Retry or escalate.** If the same minion fails 3 times with the same error, escalate to the framework team.
 
 ### 5.2 Recover from Orchestrator Crash
 
 1. **Check Grafana Sev-1 alert.** Orchestrator 5xx rate should trigger P1 alert.
-2. **Check Container App status:**
+1. **Check Container App status:**
    ```bash
    az containerapp show -n ca-orchestrator-prod -g rg-goosefw-prod
    ```
-3. **Diagnose:**
+1. **Diagnose:**
    - **OOM** → Increase memory allocation. Check for memory leak in recent deploys.
    - **Startup failure** → Check Container App logs. Verify `goose serve` starts correctly.
    - **Config error** → Verify `config.yaml` and Key Vault secrets.
-4. **KEDA auto-respawn.** Container Apps will automatically restart crashed replicas.
-5. **SQLite recovery.** If the orchestrator's SQLite WAL is corrupted:
+1. **KEDA auto-respawn.** Container Apps will automatically restart crashed replicas.
+1. **SQLite recovery.** If the orchestrator's SQLite WAL is corrupted:
    ```bash
    # Restore from latest Blob backup (<15 min RPO)
    az storage blob download -c sqlite-backups --account-name stgoosefwprod \
      -n sessions-latest.db -f /tmp/sessions-restored.db
    ```
-6. **Service Bus message replay.** Undelivered messages remain in the topic. After restart, the orchestrator processes the backlog.
+1. **Service Bus message replay.** Undelivered messages remain in the topic. After restart, the orchestrator processes the backlog.
 
 ### 5.3 Scale AI Foundry Capacity
 
 1. **Throttling alert fires.** AI Foundry returning 429s.
-2. **Check current TPM:**
+1. **Check current TPM:**
    ```bash
    az cognitiveservices account show -n foundry-goosefw-prod -g rg-goosefw-prod \
      --query properties.quotaLimit
    ```
-3. **Increase capacity:**
+1. **Increase capacity:**
    ```bash
    # Edit environments/prod.tfvars — increase model_deployments.<tier>.capacity
    cd infra
    terraform apply -var-file=environments/prod.tfvars
    ```
-4. **Monitor for 15 minutes.** Confirm throttling drops to zero.
-5. **If PTU is needed:** Request PTU quota from Azure, update to `Standard_S0` with PTU, reapply.
+1. **Monitor for 15 minutes.** Confirm throttling drops to zero.
+1. **If PTU is needed:** Request PTU quota from Azure, update to `Standard_S0` with PTU, reapply.
 
 ### 5.4 Deploy Model Tier Update
 
@@ -263,13 +263,13 @@ toolshed_logs_CL
        version: "2024-08-06"
        capacity: 200
    ```
-2. **CI/CD pipeline** picks up the change on merge.
-3. **Staging canary (1 hour):** 10% of traffic uses the new model tier.
-4. **Monitor Grafana:** Compare minion quality metrics (accuracy, latency, cost) vs. baseline.
-5. **If metrics hold:** Promote to full staging → manual approval → production canary.
-6. **If metrics degrade:** Auto-rollback via Terraform state restore.
+1. **CI/CD pipeline** picks up the change on merge.
+1. **Staging canary (1 hour):** 10% of traffic uses the new model tier.
+1. **Monitor Grafana:** Compare minion quality metrics (accuracy, latency, cost) vs. baseline.
+1. **If metrics hold:** Promote to full staging → manual approval → production canary.
+1. **If metrics degrade:** Auto-rollback via Terraform state restore.
 
----
+______________________________________________________________________
 
 ## 6. Disaster Recovery
 
@@ -283,9 +283,10 @@ toolshed_logs_CL
 ### 6.2 Regional Failure (not in Phase 1-3 scope)
 
 The framework is single-region (uksouth). Multi-region DR is a Phase 4+ enhancement. In a regional outage:
+
 1. All services are unavailable.
-2. Recovery requires Terraform apply in a new region.
-3. SQLite state is lost beyond the last Blob backup (RPO: 15 minutes).
+1. Recovery requires Terraform apply in a new region.
+1. SQLite state is lost beyond the last Blob backup (RPO: 15 minutes).
 
 ### 6.3 Backup & Restore
 
@@ -300,7 +301,7 @@ az storage blob download -c sqlite-backups --account-name stgoosefwprod \
   -n <backup-name> -f /tmp/sessions-restored.db
 ```
 
----
+______________________________________________________________________
 
 ## 7. Security Procedures
 
@@ -316,11 +317,11 @@ az storage blob download -c sqlite-backups --account-name stgoosefwprod \
 ### 7.2 Incident Response
 
 1. **Contain.** Disable the affected minion type via allowlist update.
-2. **Investigate.** Use the dashboard correlation tree to trace the incident.
-3. **Remediate.** Apply the fix, re-enable the minion type.
-4. **Post-mortem.** Document the incident in `docs/postmortems/YYYY-MM-DD.md`.
+1. **Investigate.** Use the dashboard correlation tree to trace the incident.
+1. **Remediate.** Apply the fix, re-enable the minion type.
+1. **Post-mortem.** Document the incident in `docs/postmortems/YYYY-MM-DD.md`.
 
----
+______________________________________________________________________
 
 ## 8. Cost Management
 

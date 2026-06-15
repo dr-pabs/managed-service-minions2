@@ -1,11 +1,11 @@
 # Deployment Guide — Goose Agent Framework
 
-> **Status:** Phase 3 — Production Ready  
-> **Date:** 2026-06-15  
-> **Target Goose:** 1.37.0  
+> **Status:** Phase 3 — Production Ready\
+> **Date:** 2026-06-15\
+> **Target Goose:** 1.37.0\
 > **Target Platform:** Azure Container Apps
 
----
+______________________________________________________________________
 
 ## 1. Prerequisites
 
@@ -19,6 +19,7 @@
 | `gh` CLI | Latest | `brew install gh` |
 
 **Azure resources:** Subscription with Contributor access, registered providers:
+
 ```bash
 az provider register -n Microsoft.App
 az provider register -n Microsoft.ServiceBus
@@ -28,7 +29,7 @@ az provider register -n Microsoft.CognitiveServices
 az provider register -n Microsoft.OperationalInsights
 ```
 
----
+______________________________________________________________________
 
 ## 2. Local Development Setup
 
@@ -77,7 +78,7 @@ goose configure --add-extension toolshed \
   --cmd "$PWD/mcp-servers/toolshed/target/release/goose-toolshed"
 ```
 
----
+______________________________________________________________________
 
 ## 3. Environment Configuration
 
@@ -106,7 +107,7 @@ GOOSE_SERVER__SECRET_KEY=your-secret-key
 GITHUB_PERSONAL_ACCESS_TOKEN=ghp_...
 ```
 
----
+______________________________________________________________________
 
 ## 4. Deployment Workflow
 
@@ -185,7 +186,7 @@ bash scripts/canary-promote.sh staging latest
 # After staging validated → deploy to production (same process)
 ```
 
----
+______________________________________________________________________
 
 ## 5. Post-Deployment Verification
 
@@ -218,16 +219,16 @@ goose session
 ### 5.3 Slack Bot Smoke Test
 
 1. Open your Slack workspace.
-2. In an allowed channel, type: `Review PR #342`
-3. Expected: `:thinking_face:` reaction appears → threaded reply with structured review.
+1. In an allowed channel, type: `Review PR #342`
+1. Expected: `:thinking_face:` reaction appears → threaded reply with structured review.
 
 ### 5.4 Teams Bot Smoke Test
 
 1. Open Microsoft Teams.
-2. Send: `Review PR #342`
-3. Expected: Typing indicator → Adaptive Card with structured review response.
+1. Send: `Review PR #342`
+1. Expected: Typing indicator → Adaptive Card with structured review response.
 
----
+______________________________________________________________________
 
 ## 6. Rollback Procedure
 
@@ -263,12 +264,13 @@ az containerapp show -n ca-orchestrator-prod \
 ### 6.3 Plugin Rollback
 
 If a plugin update causes issues:
+
 ```bash
 # Reinstall from the previous release
 goose plugin install https://github.com/dr-pabs/managed-service-minions2@v0.1.0
 ```
 
----
+______________________________________________________________________
 
 ## 7. Monitoring Setup
 
@@ -299,10 +301,10 @@ terraform apply -var-file=environments/prod.tfvars \
 ### 7.3 Verify Alerting
 
 1. Check Grafana dashboard renders all panels.
-2. Trigger a test alert: intentionally fail a minion and verify PagerDuty notification.
-3. Confirm Teams channel receives P3 alerts.
+1. Trigger a test alert: intentionally fail a minion and verify PagerDuty notification.
+1. Confirm Teams channel receives P3 alerts.
 
----
+______________________________________________________________________
 
 ## 8. Troubleshooting
 
@@ -317,7 +319,7 @@ terraform apply -var-file=environments/prod.tfvars \
 | Teams bot not responding | `az containerapp logs show -n ca-teamsbot-prod -g rg-goosefw-prod` | Verify Azure AD credentials. Check ACP WebSocket connectivity |
 | Cost spike | Azure Cost Management → `Cost by resource` | Filter by `ca-orchestrator-*`. Check for runaway turns or excessive delegate spawning |
 
----
+______________________________________________________________________
 
 ## 9. Environment Differences
 
@@ -333,7 +335,7 @@ terraform apply -var-file=environments/prod.tfvars \
 | Backup frequency | None | Daily | Every 15 minutes |
 | Auto-scaling KEDA | Disabled | Enabled (max 5) | Enabled (max 10) |
 
----
+______________________________________________________________________
 
 ## 10. Quick Reference
 

@@ -1,7 +1,7 @@
 # Monitoring & Alerting Design
 
-> **Status:** Phase 3 — Production Ready  
-> **Date:** 2026-06-15  
+> **Status:** Phase 3 — Production Ready\
+> **Date:** 2026-06-15
 
 ## Architecture
 
@@ -49,7 +49,7 @@
 └─────────────────────────────────────────────────────────────┘
 ```
 
----
+______________________________________________________________________
 
 ## 1. Log Schema (Toolshed)
 
@@ -82,7 +82,7 @@ On allowlist denial:
 }
 ```
 
----
+______________________________________________________________________
 
 ## 2. Alert Rules
 
@@ -112,7 +112,7 @@ On allowlist denial:
 | Container CPU > 80% | Sustained for 10 minutes | `Perf \| where CounterName == "cpuUsageNanoCores" \| where TimeGenerated > ago(10m) \| summarize AvgCPU=avg(CounterValue) by bin(TimeGenerated, 1m) \| where AvgCPU > 80` |
 | Cost anomaly detected | Daily spend > 2x rolling average | Azure Cost Management anomaly detection (built-in) |
 
----
+______________________________________________________________________
 
 ## 3. Grafana Dashboard
 
@@ -202,7 +202,7 @@ az grafana dashboard import -n graf-goosefw-prod \
   --definition @infra/monitoring/grafana-dashboard.json
 ```
 
----
+______________________________________________________________________
 
 ## 4. Action Groups
 
@@ -212,7 +212,7 @@ az grafana dashboard import -n graf-goosefw-prod \
 | P2 | PagerDuty (business hours) + Teams | Framework team |
 | P3 | Microsoft Teams channel | `#goose-framework-alerts` |
 
----
+______________________________________________________________________
 
 ## 5. Healthcheck Endpoints
 
@@ -224,5 +224,6 @@ az grafana dashboard import -n graf-goosefw-prod \
 | `GET /health` (dashboard) | `200 OK` | Static assets serving |
 
 Container Apps use these endpoints for liveness probes. KEDA scales based on:
+
 - Service Bus queue depth (minion requests waiting)
 - HTTP request rate (Slack/Teams message volume)

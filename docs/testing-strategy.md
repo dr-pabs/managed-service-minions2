@@ -1,10 +1,10 @@
 # Testing Strategy
 
-> **Date:** 2026-06-14  
-> **Status:** Active  
+> **Date:** 2026-06-14\
+> **Status:** Active\
 > **Purpose:** How to test every layer of the framework — from prompt quality to pipeline recovery.
 
----
+______________________________________________________________________
 
 ## ⚠️ Coverage Mandate
 
@@ -66,23 +66,23 @@ If a test fails during build, the code enters the **Ralph Wiggum loop** — an e
 
 **The loop is mandatory.** There is no skip button, no override, no "merge anyway." Code exits the loop only when every test passes. This applies at every level: local `cargo test`, CI pipeline, and deployment gates.
 
----
+______________________________________________________________________
 
 ## Table of Contents
 
 1. [Testing Pyramid](#testing-pyramid)
-2. [Unit Tests](#unit-tests)
-3. [Integration Tests](#integration-tests)
-4. [Prompt Quality Tests](#prompt-quality-tests)
-5. [End-to-End Pipeline Tests](#end-to-end-pipeline-tests)
-6. [Allowlist & Security Tests](#allowlist--security-tests)
-7. [Performance Tests](#performance-tests)
-8. [Chaos Tests](#chaos-tests)
-9. [Cross-Platform Parity Tests](#cross-platform-parity-tests)
-10. [Test Infrastructure](#test-infrastructure)
-11. [CI Integration](#ci-integration)
+1. [Unit Tests](#unit-tests)
+1. [Integration Tests](#integration-tests)
+1. [Prompt Quality Tests](#prompt-quality-tests)
+1. [End-to-End Pipeline Tests](#end-to-end-pipeline-tests)
+1. [Allowlist & Security Tests](#allowlist--security-tests)
+1. [Performance Tests](#performance-tests)
+1. [Chaos Tests](#chaos-tests)
+1. [Cross-Platform Parity Tests](#cross-platform-parity-tests)
+1. [Test Infrastructure](#test-infrastructure)
+1. [CI Integration](#ci-integration)
 
----
+______________________________________________________________________
 
 ## Testing Pyramid
 
@@ -110,7 +110,7 @@ graph TB
     style unit fill:#d5f5e3,stroke:#82c091,color:#1a1a1a
 ```
 
----
+______________________________________________________________________
 
 ## Unit Tests
 
@@ -173,7 +173,7 @@ describe('Intent Classifier', () => {
 });
 ```
 
----
+______________________________________________________________________
 
 ## Integration Tests
 
@@ -238,7 +238,7 @@ describe('ticket→fix→pr pipeline', () => {
 });
 ```
 
----
+______________________________________________________________________
 
 ## Prompt Quality Tests
 
@@ -345,7 +345,7 @@ goose test prompt-quality \
 - Test cases are PR-reviewed alongside prompts
 - Stale test cases (code changed, finding no longer relevant) are removed
 
----
+______________________________________________________________________
 
 ## End-to-End Pipeline Tests
 
@@ -381,7 +381,7 @@ Staging environment:
 └── Test Teams channel: "Goose E2E Tests"
 ```
 
----
+______________________________________________________________________
 
 ## Allowlist & Security Tests
 
@@ -399,7 +399,7 @@ These **must pass 100%** before any deployment.
 | 8 | Minion A cannot read Minion B's session data | SQLite row-level isolation |
 | 9 | Unteamed session cannot access team-scoped workspaces | 403 on workspace boundary violation |
 
----
+______________________________________________________________________
 
 ## Performance Tests
 
@@ -413,7 +413,7 @@ These **must pass 100%** before any deployment.
 | 6 parallel PR reviews | All complete within 5 minutes | Max wall clock of parallel Code Reviewer runs |
 | Cold start (scale from zero) | < 20 seconds | Time to first byte after scale-to-zero |
 
----
+______________________________________________________________________
 
 ## Chaos Tests
 
@@ -428,7 +428,7 @@ Run weekly (or on demand) to verify resilience.
 | 5 | AI Foundry returns 429 for 10 minutes | Minions retry with exponential backoff. Fast-tier tasks continue. Reasoning-tier tasks queue. |
 | 6 | Corrupt SQLite file | Orchestrator detects on startup. Restores from latest Blob backup. RPO verified < 15 min. |
 
----
+______________________________________________________________________
 
 ## Cross-Platform Parity Tests
 
@@ -440,7 +440,7 @@ Ensure GitHub and Azure DevOps pipelines produce equivalent quality.
 | 2 | "Review PR" — GitHub PR vs. ADO PR (same diff) | Same findings, same severity distribution |
 | 3 | "What's the status of X?" — ServiceNow vs. ADO work item | Same structure, cross-references present |
 
----
+______________________________________________________________________
 
 ## Test Infrastructure
 
@@ -502,7 +502,7 @@ test/
     └── corrupt-sqlite.sh
 ```
 
----
+______________________________________________________________________
 
 ## CI Integration
 

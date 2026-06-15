@@ -1,10 +1,10 @@
 # Gap Analysis — What We've Covered and What's Missing
 
-> **Date:** 2026-06-06  
-> **Status:** Working document — most gaps closed  
+> **Date:** 2026-06-06\
+> **Status:** Working document — most gaps closed\
 > **Purpose:** Identify every gap so nothing ships half-designed.
 
----
+______________________________________________________________________
 
 ## Coverage Matrix
 
@@ -32,7 +32,7 @@
 | **Scale limits** | ⚠️ Documented below | Expand with production data |
 | **Recursive orchestration** | ✅ Decided | Explicit non-goal for v1 |
 
----
+______________________________________________________________________
 
 ## Remaining Gaps
 
@@ -55,7 +55,7 @@ The orchestrator spawning an orchestrator delegate (e.g., "Fix all 50 open P1 bu
 
 All current numbers (cost estimates, throughput ceilings, RTO/RPO targets) are calculated or estimated. They must be validated in staging and production. The Grafana dashboards and alert rules are designed to surface discrepancies.
 
----
+______________________________________________________________________
 
 ## Document Inventory
 

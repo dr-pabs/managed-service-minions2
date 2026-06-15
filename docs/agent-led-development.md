@@ -1,16 +1,17 @@
 # Agent-Led Development & Operations
 
-> **Date:** 2026-06-14  
-> **Complements:** [skills-and-roles.md](./skills-and-roles.md), [testing-strategy.md](./testing-strategy.md)  
+> **Date:** 2026-06-14\
+> **Complements:** [skills-and-roles.md](./skills-and-roles.md), [testing-strategy.md](./testing-strategy.md)\
 > **Question:** *"If these were all agents — how would they work?"*
 
----
+______________________________________________________________________
 
 ## ⚠️ The Ralph Wiggum Loop
 
 **100% test coverage is non-negotiable.** Every agent that writes code must also write and pass tests. If a test fails, the code enters the Ralph Wiggum loop — it goes back to the agent, gets fixed, gets tested again, and this repeats until ALL tests pass. There is no skip button, no override, no "merge anyway."
 
 This applies to:
+
 - **Framework Engineer Agent** — Rust code for MCP servers. `cargo test` must return 0 failures.
 - **Prompt Engineer Agent** — Minion prompt changes. Identity tests must pass.
 - **Integration Engineer Agent** — MCP server connections. Integration tests must pass.
@@ -18,7 +19,7 @@ This applies to:
 
 See `testing-strategy.md` for the full enforcement table and loop diagram.
 
----
+______________________________________________________________________
 
 ## The Self-Hosting Question
 
@@ -26,7 +27,7 @@ The Goose Agent Framework designs, builds, deploys, tests, and operates itself. 
 
 This is recursive: the orchestrator spawns minions that improve the orchestrator.
 
----
+______________________________________________________________________
 
 ## Role-to-Agent Mapping
 
@@ -67,7 +68,7 @@ graph LR
 
 **The human is always in the loop for destructive actions.** Agents propose. Humans approve merges, deployments, and prompt rollouts. The approval infrastructure we already designed (ADR-007) applies to the framework's own development.
 
----
+______________________________________________________________________
 
 ## Agent-by-Agent Design
 
@@ -97,6 +98,7 @@ Human gating:
 ```
 
 **System prompt flavor:**
+
 ```
 You are a Goose Framework engineer. You write and modify
 Goose extensions in TypeScript. You have access to:
@@ -115,7 +117,7 @@ You do NOT have access to:
 
 **Feasibility:** 🟢 High. Writing extension code is well within current LLM capabilities. The feedback loop (write → test → fix → retest) is the same as PR Crafter's loop.
 
----
+______________________________________________________________________
 
 ### 2. Integration Engineer Agent
 
@@ -143,7 +145,7 @@ Human gating:
 
 **Feasibility:** 🟢 High. MCP servers are patterned (every integration follows the same structure). The agent learns from existing implementations.
 
----
+______________________________________________________________________
 
 ### 3. Infrastructure Engineer Agent
 
@@ -171,6 +173,7 @@ Human gating:
 ```
 
 **System prompt flavor:**
+
 ```
 You are an Azure infrastructure engineer. You write and modify
 Bicep modules for the Goose Agent Framework.
@@ -184,7 +187,7 @@ Rules:
 
 **Feasibility:** 🟡 Moderate. Bicep is well-documented and the agent can learn from existing modules. But infrastructure errors are high-cost (outage, not just a failed test). The what-if guard and human approval are essential.
 
----
+______________________________________________________________________
 
 ### 4. Prompt Engineer Agent
 
@@ -219,7 +222,7 @@ Human gating:
 
 **This is the most meta role.** The Prompt Engineer Agent's own system prompt was written by a human. If it writes a bad prompt for the Code Reviewer, the Code Reviewer misses bugs. The framework reviewing its own prompts creates a dangerous feedback loop — human oversight is non-optional here.
 
----
+______________________________________________________________________
 
 ### 5. Frontend Engineer Agent
 
@@ -246,7 +249,7 @@ Human gating:
 
 **Feasibility:** 🟢 High. UI features are well-scoped and visually verifiable. The agent can generate screenshots for human review.
 
----
+______________________________________________________________________
 
 ### 6. Security Auditor Agent (already exists)
 
@@ -277,7 +280,7 @@ Human gating:
 
 **Recursive concern:** The Security Auditor reviewing its own prompt changes. If the Prompt Engineer Agent introduces a vulnerability into the Security Auditor's prompt, the Security Auditor misses it — and can't self-detect. Mitigation: Security Auditor prompt changes require a second, independent Security Auditor run with the *previous* prompt version as a control.
 
----
+______________________________________________________________________
 
 ### 7. Test Engineer Agent
 
@@ -305,7 +308,7 @@ Human gating:
 
 **Feasibility:** 🟢 High. Test generation is a well-established LLM use case.
 
----
+______________________________________________________________________
 
 ### 8. DevOps Agent
 
@@ -335,7 +338,7 @@ Human gating:
 
 **Feasibility:** 🟡 Moderate. Alert response is semi-structured. Diagnosis from logs is within LLM capability. But infrastructure changes during an incident are high-stakes — human judgment needed.
 
----
+______________________________________________________________________
 
 ### 9. Product Analyst Agent
 
@@ -365,7 +368,7 @@ Human gating:
 
 **Feasibility:** 🟢 High. Summarization and pattern detection from structured data.
 
----
+______________________________________________________________________
 
 ## The Agent Team in Action
 
@@ -421,7 +424,7 @@ Tuesday 09:05 — DevOps Agent posts to Teams:
 
 **Human involvement:** 1 review, 1 approval. Total human time: ~5 minutes. Everything else was agents.
 
----
+______________________________________________________________________
 
 ## What Agents Should NEVER Do
 
@@ -435,7 +438,7 @@ Tuesday 09:05 — DevOps Agent posts to Teams:
 | Approve their own PRs | No self-review | Human |
 | Generate prompts for the Prompt Engineer Agent | Recursive prompt generation creates dangerous feedback loops | Human writes the Prompt Engineer's prompt. Period. |
 
----
+______________________________________________________________________
 
 ## Recursive Risk: The Framework Modifying Itself
 
@@ -454,15 +457,15 @@ Example: Prompt Engineer Agent modifies the Security Auditor prompt.
 
 1. **Prompts are immutable to agents.** Only the Prompt Engineer Agent can propose prompt changes, and they always require human review.
 
-2. **Canary with metrics.** Any prompt change runs as 10% canary for 48 hours. If review quality metrics degrade, auto-rollback.
+1. **Canary with metrics.** Any prompt change runs as 10% canary for 48 hours. If review quality metrics degrade, auto-rollback.
 
-3. **Dual review for Security Auditor prompts.** When the Security Auditor's own prompt changes, the new prompt is tested against the OLD prompt on the same PR diff. Both must agree on blockers.
+1. **Dual review for Security Auditor prompts.** When the Security Auditor's own prompt changes, the new prompt is tested against the OLD prompt on the same PR diff. Both must agree on blockers.
 
-4. **Human in the loop for all merges.** The human is the circuit breaker for recursive degradation.
+1. **Human in the loop for all merges.** The human is the circuit breaker for recursive degradation.
 
-5. **Immutable audit log.** Every agent action is logged to Table Storage with the correlation ID. If a cascade happens, the audit trail pinpoints the originating change.
+1. **Immutable audit log.** Every agent action is logged to Table Storage with the correlation ID. If a cascade happens, the audit trail pinpoints the originating change.
 
----
+______________________________________________________________________
 
 ## Feasibility Summary
 
@@ -478,21 +481,24 @@ Example: Prompt Engineer Agent modifies the Security Auditor prompt.
 | DevOps Agent | 🟡 Moderate | Incident response errors | Proposes, doesn't deploy |
 | Product Analyst | 🟢 High | Misprioritization | Human product owner adjusts |
 
----
+______________________________________________________________________
 
 ## What's a V1 Agent Team vs. V2+
 
 **V1 (agents assist, humans gate):**
+
 - All agents propose. Humans approve all merges, deployments, and prompt changes.
 - The framework builds itself with heavy human oversight.
 - 1 human can oversee 9 agents, spending ~30 minutes/day reviewing proposals.
 
 **V2 (agents gate agents, humans set policy):**
+
 - Some agents can approve other agents' work (Security Auditor auto-approves safe PRs).
 - Prompt canary can auto-promote without human sign-off if metrics hold for 48 hours.
 - Test Engineer can auto-merge test-only PRs that pass CI.
 - Human sets policy ("what can be auto-approved") and handles exceptions.
 
 **V3 (aspirational — humans set goals, agents execute):**
+
 - Product Analyst defines a feature. The agent team implements, tests, deploys, and monitors it end-to-end.
 - Human intervention only when an agent escalates or metrics degrade.

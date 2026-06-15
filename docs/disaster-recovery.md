@@ -1,9 +1,9 @@
 # Disaster Recovery
 
-> **Date:** 2026-06-06  
-> **Status:** Draft  
+> **Date:** 2026-06-06\
+> **Status:** Draft
 
----
+______________________________________________________________________
 
 ## Recovery Objectives
 
@@ -12,7 +12,7 @@
 | **RTO** (Recovery Time) | < 10 minutes | Alert fires → orchestrator processes new sessions |
 | **RPO** (Recovery Point) | < 15 minutes | Last SQLite WAL backup to Blob |
 
----
+______________________________________________________________________
 
 ## Failure Scenarios
 
@@ -98,12 +98,12 @@ If an entire zone fails (power, network, cooling):
 Not in scope for the initial deployment. Multi-region is a future enhancement. In the event of region failure:
 
 1. Deploy Bicep to a new region (e.g., UK South → UK West)
-2. Restore storage from geo-redundant backup (if GRS was enabled)
-3. Update DNS for bot endpoints
-4. Teams/Slack bot endpoints must be re-registered with new URLs
-5. Estimated manual recovery: 2-4 hours
+1. Restore storage from geo-redundant backup (if GRS was enabled)
+1. Update DNS for bot endpoints
+1. Teams/Slack bot endpoints must be re-registered with new URLs
+1. Estimated manual recovery: 2-4 hours
 
----
+______________________________________________________________________
 
 ## Backup Strategy
 
@@ -116,7 +116,7 @@ Not in scope for the initial deployment. Multi-region is a future enhancement. I
 | Key Vault secrets | Automatic soft-delete | — | 90 days |
 | Container images | ACR retention policy | — | 3 latest per image |
 
----
+______________________________________________________________________
 
 ## Restore Procedure
 
@@ -163,7 +163,7 @@ az servicebus deadletter resubmit \
   --sequence-numbers 12345
 ```
 
----
+______________________________________________________________________
 
 ## DR Test Schedule
 

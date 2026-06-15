@@ -1,10 +1,10 @@
 # Build Discoveries — Goose Agent Framework
 
-> **Date:** 2026-06-15  
-> **Status:** Phase 1 build complete  
+> **Date:** 2026-06-15\
+> **Status:** Phase 1 build complete\
 > **Purpose:** Consolidates every platform discovery, design correction, and architectural decision made during the Phase 1-2 build. Updates the architecture documentation so implementers work against reality, not assumptions.
 
----
+______________________________________________________________________
 
 ## 1. Goose Platform (1.37.0)
 
@@ -43,7 +43,7 @@
 | `delegate` tool | `summon` extension (bundled, enabled) | ✅ Live test — spawned sub-agent that executed `ls` |
 | `load` tool | `summon` extension | ✅ Collects async delegate results |
 | `list_sessions` / `view_session` / `interrupt_agent` | `orchestrator` extension (disabled by default) | ✅ Control plane only. Not for minion dispatch |
-| 17 total tools | `--with-builtin developer` session | ✅ Enumerated: analyze, apps__*, delegate, edit, extensionmanager__*, load, load_skill, shell, todo__*, tree, write |
+| 17 total tools | `--with-builtin developer` session | ✅ Enumerated: analyze, apps\_\_*, delegate, edit, extensionmanager\_\_*, load, load_skill, shell, todo\_\_\*, tree, write |
 | `platform__manage_schedule` | **Does not exist** | ❌ Listed in our `goose-capabilities-and-usage.md`. Scheduling uses `goose schedule` CLI instead |
 
 ### 1.5 Delegate API
@@ -59,7 +59,7 @@
 
 **Evidence:** Live tool spec from goose 1.37.0. Office-town agents (`boss.md`, `worker.md`) demonstrate the agent-as-source pattern. Live test confirmed `delegate({ source: "code-reviewer", ... })` resolves and spawns successfully.
 
----
+______________________________________________________________________
 
 ## 2. Architecture Corrections
 
@@ -103,7 +103,7 @@
 | Correlation IDs need custom propagation | Session hooks (`SessionStart`/`SessionEnd`) handle correlation ID initialization and journaling |
 | Scheduling needs `platform__manage_schedule` | Scheduling uses `goose schedule` CLI command |
 
----
+______________________________________________________________________
 
 ## 3. Infrastructure Corrections
 
@@ -137,7 +137,7 @@
 | Plugin registration | `RUN goose plugin install /opt/goose-framework` in Dockerfile |
 | Build artifacts in git | Added `target/` to `.gitignore` |
 
----
+______________________________________________________________________
 
 ## 4. Test Corrections
 
@@ -168,7 +168,7 @@
 
 All test files corrected from `agents/` → `.agents/agents/` and `skills/` → `.agents/skills/`. The goose discovery rule requires the `.agents/` prefix.
 
----
+______________________________________________________________________
 
 ## 5. URL & Repository Corrections
 
@@ -181,7 +181,7 @@ All test files corrected from `agents/` → `.agents/agents/` and `skills/` → 
 | ACP spec | — | `agentclientprotocol/agent-client-protocol` RFN streamable-http-websocket-transport |
 | Framework repo | — | `dr-pabs/managed-service-minions2` |
 
----
+______________________________________________________________________
 
 ## 6. Key Decision Log (from build)
 
@@ -202,7 +202,7 @@ All test files corrected from `agents/` → `.agents/agents/` and `skills/` → 
 | 13 | Scheduling via `goose schedule` CLI | `platform__manage_schedule` does not exist in goose 1.37.0 |
 | 14 | Minions get only toolshed extension | `delegate` inherits parent's extensions — we restrict to governed access |
 
----
+______________________________________________________________________
 
 ## 7. What Still Needs Verification
 

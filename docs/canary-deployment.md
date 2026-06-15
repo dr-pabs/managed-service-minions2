@@ -1,13 +1,13 @@
 # Canary Deployment Configuration
 
-> **Status:** Phase 3 — Production Ready  
-> **Date:** 2026-06-15  
+> **Status:** Phase 3 — Production Ready\
+> **Date:** 2026-06-15
 
 ## Concept
 
 Canary deployments route a small percentage of traffic to a new revision before full rollout. If the canary passes health and quality checks, traffic is increased to 100%. If it fails, traffic is rolled back to the previous revision.
 
----
+______________________________________________________________________
 
 ## 1. Container Apps Configuration
 
@@ -151,7 +151,7 @@ az containerapp show -n $APP_NAME -g $RESOURCE_GROUP \
 echo "=== Canary rollback complete ==="
 ```
 
----
+______________________________________________________________________
 
 ## 2. Canary Quality Gates
 
@@ -237,7 +237,7 @@ echo "PASS: Zero allowlist denials"
 echo "=== All gates PASSED ==="
 ```
 
----
+______________________________________________________________________
 
 ## 3. CI/CD Integration
 
