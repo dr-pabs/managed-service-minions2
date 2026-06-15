@@ -1,0 +1,12 @@
+/home/runner/work/managed-service-minions2/managed-service-minions2/dr-pabs/managed-service-minions2/mcp-servers/toolshed/target/debug/deps/thiserror-d8250b8190d1026c.d: /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/lib.rs /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/aserror.rs /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/display.rs /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/var.rs /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/private.rs /home/runner/work/managed-service-minions2/managed-service-minions2/dr-pabs/managed-service-minions2/mcp-servers/toolshed/target/debug/build/thiserror-4edeecf0dd90c32f/out/private.rs
+
+/home/runner/work/managed-service-minions2/managed-service-minions2/dr-pabs/managed-service-minions2/mcp-servers/toolshed/target/debug/deps/libthiserror-d8250b8190d1026c.rmeta: /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/lib.rs /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/aserror.rs /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/display.rs /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/var.rs /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/private.rs /home/runner/work/managed-service-minions2/managed-service-minions2/dr-pabs/managed-service-minions2/mcp-servers/toolshed/target/debug/build/thiserror-4edeecf0dd90c32f/out/private.rs
+
+/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/lib.rs:
+/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/aserror.rs:
+/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/display.rs:
+/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/var.rs:
+/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/private.rs:
+/home/runner/work/managed-service-minions2/managed-service-minions2/dr-pabs/managed-service-minions2/mcp-servers/toolshed/target/debug/build/thiserror-4edeecf0dd90c32f/out/private.rs:
+
+# env-dep:OUT_DIR=/home/runner/work/managed-service-minions2/managed-service-minions2/dr-pabs/managed-service-minions2/mcp-servers/toolshed/target/debug/build/thiserror-4edeecf0dd90c32f/out

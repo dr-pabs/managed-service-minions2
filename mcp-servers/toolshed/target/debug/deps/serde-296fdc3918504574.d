@@ -1,0 +1,12 @@
+/home/runner/work/managed-service-minions2/managed-service-minions2/dr-pabs/managed-service-minions2/mcp-servers/toolshed/target/debug/deps/serde-296fdc3918504574.d: /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /home/runner/work/managed-service-minions2/managed-service-minions2/dr-pabs/managed-service-minions2/mcp-servers/toolshed/target/debug/build/serde-2682fa547d71dfc0/out/private.rs
+
+/home/runner/work/managed-service-minions2/managed-service-minions2/dr-pabs/managed-service-minions2/mcp-servers/toolshed/target/debug/deps/libserde-296fdc3918504574.rmeta: /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /home/runner/work/managed-service-minions2/managed-service-minions2/dr-pabs/managed-service-minions2/mcp-servers/toolshed/target/debug/build/serde-2682fa547d71dfc0/out/private.rs
+
+/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs:
+/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs:
+/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs:
+/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs:
+/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs:
+/home/runner/work/managed-service-minions2/managed-service-minions2/dr-pabs/managed-service-minions2/mcp-servers/toolshed/target/debug/build/serde-2682fa547d71dfc0/out/private.rs:
+
+# env-dep:OUT_DIR=/home/runner/work/managed-service-minions2/managed-service-minions2/dr-pabs/managed-service-minions2/mcp-servers/toolshed/target/debug/build/serde-2682fa547d71dfc0/out
