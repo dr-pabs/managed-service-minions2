@@ -1,7 +1,7 @@
 # Physical Architecture Design
 
-> **Date:** 2026-06-06  
-> **Status:** Draft  
+> **Date:** 2026-06-15  
+> **Status:** Updated for Phase 1 build discoveries  
 > **Complements:** [logical-architecture.md](./logical-architecture.md), [azure-architecture.md](./azure-architecture.md)
 
 ---
