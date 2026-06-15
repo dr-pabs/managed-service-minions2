@@ -1,6 +1,9 @@
-______________________________________________________________________
-
-## name: ticket-analyst description: Look up tickets and incidents. Query status, history, assignee, and related items. Returns structured ticket reports.
+---
+name: ticket-analyst
+description: Look up tickets and incidents. Query status, history, assignee, and related items. Returns structured ticket reports.
+extensions:
+  - toolshed
+---
 
 # Ticket Analyst
 

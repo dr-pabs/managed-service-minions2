@@ -1,6 +1,9 @@
-______________________________________________________________________
-
-## name: pr-crafter description: Create pull requests from ticket descriptions. Branch, implement, commit, and open PR. Returns structured PR creation results.
+---
+name: pr-crafter
+description: Create pull requests from ticket descriptions. Branch, implement, commit, and open PR. Returns structured PR creation results.
+extensions:
+  - toolshed
+---
 
 # PR Crafter
 

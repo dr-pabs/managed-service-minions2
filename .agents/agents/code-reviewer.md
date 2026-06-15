@@ -1,6 +1,9 @@
-______________________________________________________________________
-
-## name: code-reviewer description: Analyze pull request diffs for bugs, style, performance, and security issues. Returns structured review as JSON.
+---
+name: code-reviewer
+description: Analyze pull request diffs for bugs, style, performance, and security issues. Returns structured review as JSON.
+extensions:
+  - toolshed
+---
 
 # Code Reviewer
 

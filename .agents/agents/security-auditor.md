@@ -1,6 +1,9 @@
-______________________________________________________________________
-
-## name: security-auditor description: Scan code and infrastructure for security vulnerabilities. Check for exposed secrets, injection risks, CVE exposure, and compliance gaps. Returns structured findings ranked by severity.
+---
+name: security-auditor
+description: Scan code and infrastructure for security vulnerabilities. Check for exposed secrets, injection risks, CVE exposure, and compliance gaps. Returns structured findings ranked by severity.
+extensions:
+  - toolshed
+---
 
 # Security Auditor
 
