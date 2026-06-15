@@ -1,8 +1,8 @@
 # Microsoft Foundry Integration Design
 
-> **Status:** Phase 4 — Design Complete, Awaiting Foundry Deployment  
-> **Date:** 2026-06-15  
-> **Reference:** ADR-010 — Azure AI Foundry as the AI Platform  
+> **Status:** Phase 4 — Design Complete, Awaiting Foundry Deployment\
+> **Date:** 2026-06-15\
+> **Reference:** ADR-010 — Azure AI Foundry as the AI Platform\
 > **Complements:** `docs/how-goose-works-with-llms.md`, `docs/high-level-design.md`
 
 ## 1. Overview

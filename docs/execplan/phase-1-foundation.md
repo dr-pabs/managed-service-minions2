@@ -49,7 +49,7 @@ This is the "walking skeleton" — one end-to-end path that proves the architect
 - [x] Scaffold Slack bot ACP client (`bots/slack-bot/` — Node.js, Bolt, WebSocket).
 - [x] Scaffold Teams bot ACP client (`bots/teams-bot/` — Node.js, BotBuilder, Adaptive Cards).
 - [ ] Deploy infrastructure to dev environment (`terraform plan -var-file=environments/dev.tfvars`).
-- [ ] Update architecture docs with build discoveries (plugin system, ACP, delegate tool, .agents/).
+- [x] Update architecture docs with build discoveries — `docs/build-discoveries.md` consolidates all findings. `docs/azure-architecture.md`, `docs/physical-architecture.md`, `docs/low-level-design.md` all updated.
 - [x] **Phase 2: Implement full agent definitions** (code-explorer 72→72 lines with full prompts, pr-crafter 47→101, ticket-analyst 42→88, security-auditor 48→92).
 - [x] **Phase 2: Upgraded orchestrator skill** — DAG decomposition (ticket_fix_pr 4-stage, daily_review parallel), retry policy (3 retries, exponential backoff), dead-letter handling with suggestions, timeout handling via interrupt_agent.
 - [x] **Phase 2: Structured output validation** — Required fields and type checks per agent (5 validation rule tables).

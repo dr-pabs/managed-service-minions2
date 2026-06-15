@@ -1,8 +1,8 @@
 # Scheduled Triggers Design
 
-> **Status:** Phase 4 — Design Complete, Awaiting Implementation  
-> **Date:** 2026-06-15  
-> **Target:** Goose 1.37.0+ `goose schedule` CLI  
+> **Status:** Phase 4 — Design Complete, Awaiting Implementation\
+> **Date:** 2026-06-15\
+> **Target:** Goose 1.37.0+ `goose schedule` CLI\
 > **Complements:** `docs/high-level-design.md` §Layer 1, `docs/gap-analysis.md` §Scale Limits
 
 ## 1. Overview
@@ -41,10 +41,10 @@ goose schedule delete daily-pr-review
 When a scheduled trigger fires, the goose runtime starts a new session with the orchestrator recipe. The orchestrator:
 
 1. Receives the `intent` parameter (e.g., `daily_review`).
-2. Fetches the list of open PRs via GitHub MCP (through toolshed).
-3. Deploys parallel `delegate` calls — one per PR.
-4. Collects results via `load`.
-5. Posts a summary to the configured channel (Slack/Teams) or writes to the session journal.
+1. Fetches the list of open PRs via GitHub MCP (through toolshed).
+1. Deploys parallel `delegate` calls — one per PR.
+1. Collects results via `load`.
+1. Posts a summary to the configured channel (Slack/Teams) or writes to the session journal.
 
 ```
 cron fires "0 8 * * 1-5"

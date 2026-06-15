@@ -22,7 +22,7 @@ ______________________________________________________________________
 
 ### 2.1 One-Time Setup
 
-```bash
+````bash
 # Clone the repo
 git clone https://github.com/dr-pabs/managed-service-minions2
 cd managed-service-minions2
@@ -42,7 +42,7 @@ docker push stgoosefwprod.azurecr.io/goose-serve:latest
 docker push stgoosefwprod.azurecr.io/slack-bot:latest
 docker push stgoosefwprod.azurecr.io/teams-bot:latest
 docker push stgoosefwprod.azurecr.io/dashboard:latest
-```
+```text
 
 ### 2.2 Deploy Infrastructure
 
@@ -61,7 +61,7 @@ terraform output slack_bot_fqdn
 terraform output teams_bot_fqdn
 terraform output service_bus_namespace
 terraform output key_vault_uri
-```
+```text
 
 ### 2.3 Post-Deploy Verification
 
@@ -79,7 +79,7 @@ az keyvault secret list --vault-name kv-goosefw-prod
 az containerapp show -n ca-orchestrator-prod -g rg-goosefw-prod --query properties.runningStatus
 az containerapp show -n ca-slackbot-prod -g rg-goosefw-prod --query properties.runningStatus
 az containerapp show -n ca-teamsbot-prod -g rg-goosefw-prod --query properties.runningStatus
-```
+```text
 
 ______________________________________________________________________
 
@@ -87,7 +87,7 @@ ______________________________________________________________________
 
 ### 3.1 Pipeline Flow
 
-```
+```text
 PR opened
   │
   ├─► Lint gates (markdown, YAML, shell)
@@ -117,7 +117,7 @@ PR opened
        │
        ├─► Canary: 10% traffic for 15 minutes
        └─► Full rollout after canary passes
-```
+```text
 
 ### 3.2 Manual Deployment (if CI unavailable)
 
@@ -139,7 +139,7 @@ docker push stgoosefwprod.azurecr.io/goose-serve:$(git rev-parse --short HEAD)
 # Apply infrastructure
 cd infra
 terraform apply -var-file=environments/prod.tfvars -var image_tag=$(git rev-parse --short HEAD) -auto-approve
-```
+```text
 
 ______________________________________________________________________
 
@@ -184,7 +184,7 @@ ContainerAppConsoleLogs_CL
 toolshed_logs_CL
 | where result_s == "success"
 | summarize percentile(duration_ms_d, 95) by tool_s
-```
+```text
 
 ### 4.3 Grafana Dashboard Panels
 
@@ -222,7 +222,7 @@ ______________________________________________________________________
 1. **Check Container App status:**
    ```bash
    az containerapp show -n ca-orchestrator-prod -g rg-goosefw-prod
-   ```
+   ```text
 1. **Diagnose:**
    - **OOM** → Increase memory allocation. Check for memory leak in recent deploys.
    - **Startup failure** → Check Container App logs. Verify `goose serve` starts correctly.
@@ -233,7 +233,7 @@ ______________________________________________________________________
    # Restore from latest Blob backup (<15 min RPO)
    az storage blob download -c sqlite-backups --account-name stgoosefwprod \
      -n sessions-latest.db -f /tmp/sessions-restored.db
-   ```
+   ```text
 1. **Service Bus message replay.** Undelivered messages remain in the topic. After restart, the orchestrator processes the backlog.
 
 ### 5.3 Scale AI Foundry Capacity
@@ -243,13 +243,13 @@ ______________________________________________________________________
    ```bash
    az cognitiveservices account show -n foundry-goosefw-prod -g rg-goosefw-prod \
      --query properties.quotaLimit
-   ```
+   ```text
 1. **Increase capacity:**
    ```bash
    # Edit environments/prod.tfvars — increase model_deployments.<tier>.capacity
    cd infra
    terraform apply -var-file=environments/prod.tfvars
-   ```
+   ```text
 1. **Monitor for 15 minutes.** Confirm throttling drops to zero.
 1. **If PTU is needed:** Request PTU quota from Azure, update to `Standard_S0` with PTU, reapply.
 
@@ -262,7 +262,7 @@ ______________________________________________________________________
        name: gpt-4o
        version: "2024-08-06"
        capacity: 200
-   ```
+   ```text
 1. **CI/CD pipeline** picks up the change on merge.
 1. **Staging canary (1 hour):** 10% of traffic uses the new model tier.
 1. **Monitor Grafana:** Compare minion quality metrics (accuracy, latency, cost) vs. baseline.
@@ -299,7 +299,7 @@ az storage blob upload -c sqlite-backups --account-name stgoosefwprod \
 # Restore from backup
 az storage blob download -c sqlite-backups --account-name stgoosefwprod \
   -n <backup-name> -f /tmp/sessions-restored.db
-```
+```text
 
 ______________________________________________________________________
 
@@ -344,3 +344,4 @@ ______________________________________________________________________
 - **PTU for predictable workloads.** If consistently >200 sessions/day, PTU is cheaper than PayGo.
 - **Log retention.** Reduce to 7 days in dev/staging.
 - **Service Bus.** Standard tier is adequate. Only upgrade to Premium if message size >256KB.
+````
