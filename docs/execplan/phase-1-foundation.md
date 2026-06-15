@@ -45,6 +45,9 @@ This is the "walking skeleton" — one end-to-end path that proves the architect
 - [x] Scaffold Terraform infrastructure (`infra/` — providers, main, variables, outputs, 3 envs).
 - [x] Write Terratest validation (`infra/tests/infra_test.go` — 6 tests, 5 resource types).
 - [x] Move all top-level .md files into `docs/` — update cross-reference links.
+- [x] Scaffold dashboard web app (`dashboard/` — React, 6 views, dark theme, mock data).
+- [x] Scaffold Slack bot ACP client (`bots/slack-bot/` — Node.js, Bolt, WebSocket).
+- [x] Scaffold Teams bot ACP client (`bots/teams-bot/` — Node.js, BotBuilder, Adaptive Cards).
 - [ ] Deploy infrastructure to dev environment (`terraform plan -var-file=environments/dev.tfvars`).
 - [ ] Update architecture docs with build discoveries (plugin system, ACP, delegate tool, .agents/).
 
