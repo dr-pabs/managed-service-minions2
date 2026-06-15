@@ -107,9 +107,12 @@ const prTask = delegate({
 const prResult = load({ source: prTask.taskId });
 const reviewTask = delegate({
   source: "code-reviewer",
-  parameters: { pr_number: extractPrNumber(prResult.pr_url) },
+  parameters: { pr_number: extractPrNumber(prResult.pr_url), repo: "org/repo" },
   extensions: ["toolshed"], max_turns: 20, async: true
 });
+
+// Collect review result
+const reviewResult = load({ source: reviewTask.taskId });
 
 return {
   intent: "ticket_fix_pr",
@@ -185,8 +188,6 @@ Each minion has a wall-clock timeout. If exceeded:
 3. If all retries exhausted, dead-letter.
 
 ## Structured Output Validation
-
-Each agent's output is validated against its expected JSON schema before being returned.
 
 ### Validation Rules by Agent
 

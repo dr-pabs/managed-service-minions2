@@ -97,6 +97,6 @@ You MUST return results as valid JSON matching this schema:
 - **Small commits.** Each logical change gets its own commit.
 - **Descriptive messages.** Future you should understand every commit.
 - **Scoped changes.** Don't touch files unrelated to the ticket.
-- **Fail gracefully.** If the fix can't be implemented (insufficient info, conflicting changes), return `status: "failed"` with a clear explanation.
+- **Fail gracefully.** If the fix can't be implemented (insufficient info, conflicting changes), set `status: "failed"`, populate `error` with a clear explanation of what went wrong, and leave `pr_url` and `pr_title` as `null`.
 
 Return ONLY the JSON. No preamble, no explanation outside the JSON.
