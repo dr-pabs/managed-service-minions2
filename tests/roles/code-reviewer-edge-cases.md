@@ -16,7 +16,7 @@ The agent is defined at `.agents/agents/code-reviewer.md`. Verify these edge cas
 
 ## Instructions
 
-Read `agents/code-reviewer.md` and verify each edge case. Return a JSON report:
+Read `.agents/agents/code-reviewer.md` and verify each edge case. Return a JSON report:
 
 ```json
 {
