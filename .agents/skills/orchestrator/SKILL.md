@@ -1,7 +1,6 @@
----
-name: orchestrator
-description: Classify user intents, delegate to specialist agents, collect structured results. Supports single-minion and multi-minion DAG dispatch with retry and dead-letter handling.
----
+______________________________________________________________________
+
+## name: orchestrator description: Classify user intents, delegate to specialist agents, collect structured results. Supports single-minion and multi-minion DAG dispatch with retry and dead-letter handling.
 
 # Orchestrator
 
@@ -51,12 +50,14 @@ delegate({
 Complex intents decompose into directed acyclic graphs of minions. Each edge is a dependency — the child waits for the parent's output as input.
 
 **`ticket_fix_pr` DAG:**
+
 ```
 ticket-analyst ──▶ code-explorer ──▶ pr-crafter ──▶ code-reviewer
     (fetch ticket)   (find affected)   (implement fix)   (review PR)
 ```
 
 **`daily_review` DAG (parallel fan-out):**
+
 ```
                     ┌─▶ code-reviewer (PR #341)
                     ├─▶ code-reviewer (PR #342)
@@ -155,6 +156,7 @@ After 3 retries (4 total attempts), the minion is **dead-lettered** — the fail
 ### Dead-Letter Handling
 
 A dead-lettered minion returns an error with actionable context:
+
 ```json
 {
   "status": "dead_lettered",
@@ -190,6 +192,7 @@ If an agent returns invalid JSON, the output is treated as a failure, the attemp
 ## Control Plane
 
 Use the built-in `orchestrator` extension for visibility:
+
 - `list_sessions` — monitor running delegates
 - `view_session` — inspect delegate results
 - `interrupt_agent` — cancel runaway delegates
@@ -197,6 +200,7 @@ Use the built-in `orchestrator` extension for visibility:
 ## Response Format
 
 ### Single-minion response
+
 ```json
 {
   "intent": "code_review",
@@ -207,6 +211,7 @@ Use the built-in `orchestrator` extension for visibility:
 ```
 
 ### Multi-minion DAG response
+
 ```json
 {
   "intent": "ticket_fix_pr",
@@ -221,6 +226,7 @@ Use the built-in `orchestrator` extension for visibility:
 ```
 
 ### Error response
+
 ```json
 {
   "intent": "code_review",
