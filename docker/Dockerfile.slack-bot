@@ -1,0 +1,23 @@
+# Slack Bot ACP Client
+#
+# Build: docker build -f docker/Dockerfile.slack-bot -t goose-slack-bot .
+# Run:   docker run -p 3000:3000 \
+#          -e GOOSE_SERVE_URL=http://goose-serve:3284 \
+#          -e GOOSE_SERVER__SECRET_KEY=secret \
+#          -e SLACK_BOT_TOKEN=xoxb-... \
+#          -e SLACK_SIGNING_SECRET=... \
+#          -e SLACK_APP_TOKEN=xapp-... \
+#          goose-slack-bot
+
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY bots/slack-bot/package*.json ./
+RUN npm ci --omit=dev
+
+COPY bots/slack-bot/src/ ./src/
+
+EXPOSE 3000
+
+CMD ["node", "src/bot.js"]

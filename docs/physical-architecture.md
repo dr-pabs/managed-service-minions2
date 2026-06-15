@@ -95,7 +95,7 @@ flowchart LR
 
 **Container image:**
 
-```
+```text
 gooseframework.azurecr.io/orchestrator:latest
 ├── Base: Goose runtime (Node.js or Python)
 ├── Extensions:
@@ -222,7 +222,7 @@ graph TB
 
 Three stores, three purposes. Table Storage for the append-only immutable tool call log. Blob Storage for large artifacts (full minion outputs, diffs) and SQLite backups. SQLite for hot session state — local to the orchestrator container, backed up every 15 minutes, restored on container start.
 
-```
+```text
 Storage Account: stgooseframework
 ├── Table: ToolCallLog
 │   ├── Partition Key: {correlation_id}
@@ -248,7 +248,7 @@ Storage Account: stgooseframework
 
 ### SQLite (ephemeral, per orchestrator replica)
 
-```
+```text
 Location: /data/goose-sessions.db (within container)
 Size: ~10–50 MB typical, grows with active sessions
 Backup: WAL checkpoint every 15 minutes → Blob (sqlite-backups container)
@@ -305,7 +305,7 @@ ______________________________________________________________________
 
 ### Key Vault: `kv-goose-framework`
 
-```
+```text
 Secret: github-pat            → GitHub MCP authentication
 Secret: ado-pat               → Azure DevOps MCP authentication
 Secret: servicenow-password   → ServiceNow MCP authentication
@@ -450,7 +450,7 @@ ______________________________________________________________________
 
 ### Horizontal Scaling
 
-```
+```text
                      KEDA Scaler
                          │
               ┌──────────┴──────────┐

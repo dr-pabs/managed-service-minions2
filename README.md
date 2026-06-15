@@ -15,7 +15,7 @@ A multi-agent orchestration framework for the [Goose](https://github.com/aaif-go
 
 ## Architecture
 
-```
+```text
 User (Slack / Teams / Goose session)
         │
         ▼
@@ -93,7 +93,7 @@ Bot adapters connect via WebSocket to `ws://localhost:3284/acp?token=your-secret
 
 ## Project Structure
 
-```
+```text
 managed-service-minions2/
 ├── .plugin/
 │   └── plugin.json              # Plugin manifest
@@ -177,7 +177,7 @@ See `testing-strategy.md` for the complete quality framework.
 
 ## Quality Policy
 
-```
+```text
 ┌─────────────────────────────────────┐
 │  Code pushed ──▶ CI runs all tests  │
 │                    │                │

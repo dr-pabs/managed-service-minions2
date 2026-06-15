@@ -41,7 +41,7 @@ Beyond coverage thresholds, the following rules are enforced at the CI/CD pipeli
 
 If a test fails during build, the code enters the **Ralph Wiggum loop** — an enforced CI gate that refuses to let failing code through:
 
-```
+```text
   ┌─────────────────────────────────────────┐
   │                                         │
   │  Code pushed ──▶ CI runs tests          │
@@ -283,7 +283,7 @@ flowchart LR
 
 Each minion type has a bank of 50-100 test cases. These are real scenarios with known-good outputs.
 
-```
+```text
 test-cases/
 ├── code-reviewer/
 │   ├── pr-342-login-bug.md          # Input: PR diff + description
@@ -368,7 +368,7 @@ Run nightly (or on demand) against a staging environment with real MCP servers p
 
 ### E2E Test Environment
 
-```
+```text
 Staging environment:
 ├── Test GitHub repo: org/goose-framework-test
 │   ├── Pre-seeded PRs (3 open, 2 with known bugs)
@@ -444,7 +444,7 @@ ______________________________________________________________________
 
 ## Test Infrastructure
 
-```
+```text
 test/
 ├── unit/
 │   ├── orchestrator/

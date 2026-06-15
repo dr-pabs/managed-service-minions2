@@ -123,7 +123,7 @@ This is the "walking skeleton" — one end-to-end path that proves the architect
 |---|---|---|---|
 | 1 | 2026-06-14 | Framework delivered as a goose plugin | Native packaging: `goose plugin install` delivers skills, agents, commands, rules, hooks. Matches `jezweb/office-town-plugin` pattern. |
 | 2 | 2026-06-14 | Minions are `agents/*.md`, not recipes | goose sub-agents are defined as markdown files in the plugin's `agents/` directory. The `delegate` tool loads them. Recipes (`recipe.yaml`) are for standalone task definitions, not sub-agent identities. |
-| 3 | 2026-06-14 | Orchestrator is a skill (`skills/orchestrator/SKILL.md`) | Skills teach goose how to route work. The orchestrator is a skill that classifies intents and delegates to the correct agent. |
+| 3 | 2026-06-14 | Orchestrator is a skill (`.agents/skills/orchestrator/SKILL.md`) | Skills teach goose how to route work. The orchestrator is a skill that classifies intents and delegates to the correct agent. |
 | 4 | 2026-06-14 | Toolshed is an external MCP server, not part of the plugin | The toolshed must intercept tool calls at the MCP protocol level. Plugins cannot do this — they provide skills, not MCP-level proxies. Registered persistently via `goose configure --add-extension` into `config.yaml`. |
 | 5 | 2026-06-14 | Bot adapters are external ACP clients | Persistent network services connecting to `goose serve`. Not includable in a plugin. |
 | 6 | 2026-06-14 | Slash commands for direct access | `/review-pr 342` in a goose session invokes the orchestrator skill directly, no bot needed. |
@@ -171,8 +171,8 @@ Verified against `jezweb/office-town-plugin` v0.5.3 and `goose info` output:
 
 | Directory | Purpose | Example |
 |---|---|---|
-| `skills/<name>/SKILL.md` | Teaches goose a workflow/procedure | `skills/orchestrator/SKILL.md` — classifies intents, delegates to agents |
-| `agents/<name>.md` | Sub-agent identity/role definition | `agents/code-reviewer.md` — loaded by `delegate` tool |
+| `.agents/skills/<name>/SKILL.md` | Teaches goose a workflow/procedure | `.agents/skills/orchestrator/SKILL.md` — classifies intents, delegates to agents |
+| `.agents/agents/<name>.md` | Sub-agent identity/role definition | `.agents/agents/code-reviewer.md` — loaded by `delegate` tool |
 | `commands/<name>.yaml` | Slash commands in goose sessions | `commands/review-pr.yaml` — `/review-pr 342` |
 | `rules/` | Standing orders for the session | `rules/allowlist-rules.md` — governance constraints |
 | `hooks/hooks.json` | Lifecycle trigger scripts | `session-start.sh` (correlation ID), `session-end.sh` (journal) |
@@ -194,10 +194,10 @@ Verified against `jezweb/office-town-plugin` v0.5.3 and `goose info` output:
   │  hooks/session-start.sh                                      │
   │    └── Initialize correlation ID, set up session store       │
   │                                                              │
-  │  skills/orchestrator/SKILL.md                                │
+  │  .agents/skills/orchestrator/SKILL.md                        │
   │    └── Classify intent → delegate to agent → collect result  │
   │                                                              │
-  │  agents/code-reviewer.md                                     │
+  │  .agents/agents/code-reviewer.md                             │
   │    └── Sub-agent: "You are a code reviewer..."               │
   │    └── Extensions: [toolshed]  ← only toolshed               │
   │                                                              │
@@ -248,8 +248,8 @@ Documentation only. No implementation code. The plugin repository would be a new
 | Component | Type | Purpose |
 |---|---|---|
 | Plugin skeleton | `.plugin/plugin.json` + directory tree | Delivery unit |
-| Orchestrator skill | `skills/orchestrator/SKILL.md` | Classify intent → delegate → collect |
-| Agent definitions | `agents/*.md` (5 files) | Minion identities and system prompts |
+| Orchestrator skill | `.agents/skills/orchestrator/SKILL.md` | Classify intent → delegate → collect |
+| Agent definitions | `.agents/agents/*.md` (5 files) | Minion identities and system prompts |
 | Slash commands | `commands/*.yaml` | Direct session access |
 | Governance rules | `rules/` | Standing orders for allowlist behavior |
 | Session hooks | `hooks/` | Correlation ID, journaling |
@@ -280,7 +280,7 @@ Create the plugin directory structure and manifest. This is the delivery unit.
 
 The first sub-agent definition. This is what `delegate` loads when the orchestrator spawns a code review minion.
 
-**File:** `agents/code-reviewer.md`
+**File:** `.agents/agents/code-reviewer.md`
 
 **Content:** Role identity, system prompt, available tools, output format:
 
@@ -294,7 +294,7 @@ The first sub-agent definition. This is what `delegate` loads when the orchestra
 
 The orchestrator is a skill — it teaches goose how to route work.
 
-**File:** `skills/orchestrator/SKILL.md`
+**File:** `.agents/skills/orchestrator/SKILL.md`
 
 **Content:**
 
@@ -606,7 +606,7 @@ rm -rf bots/
 }
 ```
 
-### `skills/orchestrator/SKILL.md`
+### `.agents/skills/orchestrator/SKILL.md`
 
 ```markdown
 ---
@@ -710,7 +710,7 @@ Agent timeouts:
 
 ````
 
-### `agents/code-reviewer.md`
+### `.agents/agents/code-reviewer.md`
 
 ```markdown
 # Code Reviewer

@@ -5,7 +5,8 @@ edition = "2021"
 description = "MCP Toolshed — shared tool governance: allowlists, rate limiting, audit logging"
 
 [dependencies]
-rmcp = { version = "0.4", features = ["server"] }
+anyhow = "1"
+rmcp = { version = "0.4", features = ["server", "transport-io"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tokio = { version = "1", features = ["full"] }
