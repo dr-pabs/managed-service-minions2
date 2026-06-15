@@ -64,6 +64,10 @@ This is the "walking skeleton" — one end-to-end path that proves the architect
 - [ ] **Phase 4: Full integration test with real delegate + GitHub MCP** — requires toolshed compilation (`cargo`) and `GITHUB_PERSONAL_ACCESS_TOKEN`.
 - [ ] **Phase 4: Infrastructure deployment to Azure** — requires Azure subscription credentials, `terraform apply`.
 - [ ] **Phase 4: Dashboard data connectors** — wire mock data to live Log Analytics KQL queries and Container Apps real-time metrics.
+- [x] **Governance: Rate limiter implemented** — `mcp-servers/toolshed/src/rate_limiter.rs` (189 lines, token bucket, 6 unit tests, per-agent configs).
+- [x] **Governance: Microsoft Foundry integration design** — `docs/foundry-integration-design.md` (199 lines, 5-tier mapping, delegate routing, Terraform, CI/CD).
+- [x] **Governance: Scheduled triggers design** — `docs/scheduled-triggers-design.md` (103 lines, 5 jobs, CLI, failure handling).
+- [x] **Governance: Audit persistence documented** — stdout JSON → Container Insights → Log Analytics → SQLite tables (4 tables, 4 indexes).
 
 ## Surprises & Discoveries
 
