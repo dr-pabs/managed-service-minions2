@@ -1,0 +1,141 @@
+# CI/CD Pipeline — Goose Agent Framework
+# Enforces the Ralph Wiggum loop on every PR and push to main/dev.
+
+name: CI/CD
+
+on:
+  pull_request:
+    branches: [main, dev]
+  push:
+    branches: [main, dev]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint Markdown
+        uses: DavidAnson/markdownlint-cli2-action@v19
+        with:
+          globs: '**/*.md'
+          continue-on-error: false
+      - name: Lint YAML
+        run: |
+          pip install yamllint
+          yamllint .
+      - name: Lint Shell
+        run: |
+          sudo apt-get install -y shellcheck
+          shellcheck hooks/*.sh tests/runner.sh
+
+  rust:
+    name: Rust (toolshed)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Clippy
+        run: cargo clippy --manifest-path mcp-servers/toolshed/Cargo.toml -- -D warnings
+      - name: Test
+        run: cargo test --manifest-path mcp-servers/toolshed/Cargo.toml
+
+  identity:
+    name: Identity Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify agent definitions exist
+        run: |
+          AGENTS="code-reviewer code-explorer pr-crafter ticket-analyst security-auditor"
+          for agent in $AGENTS; do
+            FILE=".agents/agents/$agent.md"
+            if [ ! -f "$FILE" ]; then
+              echo "FAIL: $FILE not found"
+              exit 1
+            fi
+            echo "PASS: $FILE ($(wc -l < "$FILE") lines)"
+          done
+      - name: Verify orchestrator skill exists
+        run: |
+          FILE=".agents/skills/orchestrator/SKILL.md"
+          if [ ! -f "$FILE" ]; then
+            echo "FAIL: $FILE not found"
+            exit 1
+          fi
+          echo "PASS: $FILE ($(wc -l < "$FILE") lines)"
+      - name: Verify agent output schemas
+        run: |
+          echo "Checking code-reviewer output schema..."
+          grep -q '"pr_id.*string' .agents/agents/code-reviewer.md && echo "  pr_id: PASS" || (echo "  pr_id: FAIL"; exit 1)
+          grep -q '"summary.*string' .agents/agents/code-reviewer.md && echo "  summary: PASS" || (echo "  summary: FAIL"; exit 1)
+          grep -q '"issues.*\[.*\].*file.*severity' .agents/agents/code-reviewer.md && echo "  issues: PASS" || (echo "  issues: FAIL"; exit 1)
+          grep -q '"approved.*boolean' .agents/agents/code-reviewer.md && echo "  approved: PASS" || (echo "  approved: FAIL"; exit 1)
+      - name: Verify intent classification table
+        run: |
+          grep -q 'code_review.*code-reviewer' .agents/skills/orchestrator/SKILL.md && echo "PASS: code_review intent mapped"
+          grep -q 'ticket_lookup.*ticket-analyst' .agents/skills/orchestrator/SKILL.md && echo "PASS: ticket_lookup intent mapped"
+          grep -q 'ticket_fix_pr.*pr-crafter' .agents/skills/orchestrator/SKILL.md && echo "PASS: ticket_fix_pr intent mapped"
+          grep -q 'security_audit.*security-auditor' .agents/skills/orchestrator/SKILL.md && echo "PASS: security_audit intent mapped"
+          grep -q 'code_explore.*code-explorer' .agents/skills/orchestrator/SKILL.md && echo "PASS: code_explore intent mapped"
+          grep -q 'unknown' .agents/skills/orchestrator/SKILL.md && echo "PASS: unknown intent handled"
+
+  integration:
+    name: Walking Skeleton
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify walking skeleton exists
+        run: |
+          if [ -f "tests/integration/walking-skeleton.md" ]; then
+            echo "PASS: tests/integration/walking-skeleton.md ($(wc -l < "tests/integration/walking-skeleton.md") lines)"
+          else
+            echo "FAIL: walking skeleton not found"
+            exit 1
+          fi
+      - name: Verify test references correct paths
+        run: |
+          grep -q '.agents/skills/orchestrator/SKILL.md' tests/integration/walking-skeleton.md && echo "PASS: correct orchestrator path" || (echo "FAIL: wrong path"; exit 1)
+          grep -q 'code-reviewer' tests/integration/walking-skeleton.md && echo "PASS: references code-reviewer"
+      - name: Verify runner script exists
+        run: |
+          if [ -f "tests/runner.sh" ]; then
+            shellcheck tests/runner.sh && echo "PASS: runner.sh is valid shell"
+          else
+            echo "FAIL: runner.sh not found"
+            exit 1
+          fi
+
+  terraform:
+    name: Terraform Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.5.0"
+      - name: Terraform Format
+        run: terraform fmt -check -recursive infra/
+      - name: Terraform Init
+        run: cd infra && terraform init -backend=false
+      - name: Terraform Validate
+        run: cd infra && terraform validate
+
+  gate:
+    name: All Gates Passed
+    needs: [lint, rust, identity, integration, terraform]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check gates
+        run: |
+          echo "Gates: lint=${{ needs.lint.result }}, rust=${{ needs.rust.result }}, identity=${{ needs.identity.result }}, integration=${{ needs.integration.result }}, terraform=${{ needs.terraform.result }}"
+          if [ "${{ needs.lint.result }}" != "success" ] || \
+             [ "${{ needs.rust.result }}" != "success" ] || \
+             [ "${{ needs.identity.result }}" != "success" ] || \
+             [ "${{ needs.integration.result }}" != "success" ] || \
+             [ "${{ needs.terraform.result }}" != "success" ]; then
+            echo "FAIL: One or more gates failed."
+            exit 1
+          fi
+          echo "PASS: All gates passed."
