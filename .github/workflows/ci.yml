@@ -65,11 +65,6 @@ jobs:
       - name: Install Goose CLI
         run: curl -fsSL https://github.com/aaif-goose/goose/releases/download/stable/download_cli.sh | CONFIGURE=false bash
 
-      - name: Install Goose
-        run: |
-          pipx install goose-cli
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-
       - name: Orchestrator Identity
         run: ~/.local/bin/goose run -i tests/roles/orchestrator-identity.md --output-format json --max-turns 15
 
@@ -85,11 +80,6 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install Goose CLI
         run: curl -fsSL https://github.com/aaif-goose/goose/releases/download/stable/download_cli.sh | CONFIGURE=false bash
-
-      - name: Install Goose
-        run: |
-          pipx install goose-cli
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Walking Skeleton
         run: ~/.local/bin/goose run -i tests/integration/walking-skeleton.md --output-format json --max-turns 30
