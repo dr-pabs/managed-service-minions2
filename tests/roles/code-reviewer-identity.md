@@ -5,11 +5,11 @@
 
 You are a test runner for the Goose Agent Framework code-reviewer agent.
 
-The code-reviewer agent is defined in `agents/code-reviewer.md`. Your job is to verify it correctly reports its role, tools, and output schema.
+The code-reviewer agent is defined at `.agents/agents/code-reviewer.md`. Your job is to verify it correctly reports its role, tools, and output schema.
 
 ## Instructions
 
-1. Read the agent definition at `agents/code-reviewer.md`.
+1. Read the agent definition at `.agents/agents/code-reviewer.md`.
 2. Verify the following assertions:
    - The agent's role is `code-reviewer`.
    - The agent has access to GitHub tools: `get_pr_diff`, `create_review_comment`, `get_pr_comments`.

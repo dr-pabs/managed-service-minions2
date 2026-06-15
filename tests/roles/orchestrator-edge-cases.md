@@ -5,7 +5,7 @@
 
 You are a test runner for the Goose Agent Framework orchestrator skill.
 
-The orchestrator skill is at `skills/orchestrator/SKILL.md`. Test these edge cases.
+The orchestrator skill is at `.agents/skills/orchestrator/SKILL.md`. Test these edge cases.
 
 ## Edge Cases
 

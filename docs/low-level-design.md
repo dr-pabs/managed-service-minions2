@@ -173,7 +173,7 @@ Slash commands are YAML files that register as `/command` triggers in goose sess
 │              GOOSE AGENT FRAMEWORK (our plugin)               │
 │                                                               │
 │  ┌──────────────────────────────────────────────────────┐    │
-│  │  orchestrator skill (skills/orchestrator/SKILL.md)    │    │
+│  │  orchestrator skill (.agents/skills/orchestrator/)    │    │
 │  │                                                       │    │
 │  │  ┌─────────────┐  ┌──────────┐  ┌────────────────┐   │    │
 │  │  │ Intent       │  │ Delegate │  │ Result         │   │    │
