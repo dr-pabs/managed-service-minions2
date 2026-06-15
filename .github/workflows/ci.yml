@@ -1,0 +1,122 @@
+# CI/CD Pipeline — Goose Agent Framework
+# Enforces the Ralph Wiggum loop on every PR and push to dev/main.
+#
+# Gates (in order):
+#   1. Lint: Markdown, YAML, Shell
+#   2. Rust: clippy + test (toolshed)
+#   3. Identity: orchestrator + code-reviewer
+#   4. Integration: walking skeleton
+
+name: CI/CD
+
+on:
+  pull_request:
+    branches: [main, dev]
+  push:
+    branches: [main, dev]
+
+jobs:
+  # ── Lint Gates ──────────────────────────────────────────────────────────
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lint Markdown
+        uses: DavidAnson/markdownlint-cli2-action@v19
+        with:
+          globs: '**/*.md'
+          continue-on-error: false
+
+      - name: Lint YAML
+        run: |
+          pip install yamllint
+          yamllint .
+
+      - name: Lint Shell
+        run: |
+          sudo apt-get install -y shellcheck
+          shellcheck hooks/*.sh tests/runner.sh
+
+  # ── Rust Gates (toolshed) ──────────────────────────────────────────────
+
+  rust:
+    name: Rust (toolshed)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Clippy
+        run: cargo clippy --manifest-path mcp-servers/toolshed/Cargo.toml -- -D warnings
+
+      - name: Test
+        run: cargo test --manifest-path mcp-servers/toolshed/Cargo.toml
+
+  # ── Identity Tests ─────────────────────────────────────────────────────
+
+  identity:
+    name: Identity Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Orchestrator Identity
+        run: goose run -i tests/roles/orchestrator-identity.md --output-format json --max-turns 15
+
+      - name: Code Reviewer Identity
+        run: goose run -i tests/roles/code-reviewer-identity.md --output-format json --max-turns 15
+
+  # ── Walking Skeleton ───────────────────────────────────────────────────
+
+  integration:
+    name: Walking Skeleton
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Walking Skeleton
+        run: goose run -i tests/integration/walking-skeleton.md --output-format json --max-turns 30
+
+  # ── Terraform Validation ──────────────────────────────────────────────
+
+  terraform:
+    name: Terraform Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.5"
+
+      - name: Terraform Format
+        run: terraform fmt -check -recursive infra/
+
+      - name: Terraform Init
+        run: cd infra && terraform init -backend=false
+
+      - name: Terraform Validate
+        run: cd infra && terraform validate
+
+  # ── Branch Protection Summary ──────────────────────────────────────────
+
+  gate:
+    name: All Gates Passed
+    needs: [lint, rust, identity, integration, terraform]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check gates
+        run: |
+          echo "Gates: lint=${{ needs.lint.result }}, rust=${{ needs.rust.result }}, identity=${{ needs.identity.result }}, integration=${{ needs.integration.result }}, terraform=${{ needs.terraform.result }}"
+          if [ "${{ needs.lint.result }}" != "success" ] || \
+             [ "${{ needs.rust.result }}" != "success" ] || \
+             [ "${{ needs.identity.result }}" != "success" ] || \
+             [ "${{ needs.integration.result }}" != "success" ] || \
+             [ "${{ needs.terraform.result }}" != "success" ]; then
+            echo "❌ One or more gates failed. Build is RED."
+            exit 1
+          fi
+          echo "✅ All gates passed. Build is GREEN."

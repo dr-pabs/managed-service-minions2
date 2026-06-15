@@ -1,0 +1,23 @@
+# Teams Bot ACP Client
+#
+# Build: docker build -f docker/Dockerfile.teams-bot -t goose-teams-bot .
+# Run:   docker run -p 3978:3978 \
+#          -e GOOSE_SERVE_URL=http://goose-serve:3284 \
+#          -e GOOSE_SERVER__SECRET_KEY=secret \
+#          -e AZURE_AD_CLIENT_ID=... \
+#          -e AZURE_AD_TENANT_ID=... \
+#          -e AZURE_AD_CLIENT_SECRET=... \
+#          goose-teams-bot
+
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY bots/teams-bot/package*.json ./
+RUN npm ci --omit=dev
+
+COPY bots/teams-bot/src/ ./src/
+
+EXPOSE 3978
+
+CMD ["node", "src/bot.js"]

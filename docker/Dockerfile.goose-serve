@@ -1,0 +1,37 @@
+# Goose Agent Framework — Orchestrator (goose serve)
+# Runs goose serve as the ACP server, loading the framework plugin and toolshed.
+#
+# Build: docker build -f docker/Dockerfile.goose-serve -t goose-serve .
+# Run:   docker run -p 3284:3284 \
+#          -e GOOSE_SERVER__SECRET_KEY=secret \
+#          -e GOOSE_PROVIDER=azure_openai \
+#          -e AZURE_OPENAI_ENDPOINT=https://foundry-goosefw-dev.openai.azure.com \
+#          goose-serve
+
+FROM ghcr.io/aaif-goose/goose:1.37.0 AS goose
+
+FROM debian:bookworm-slim
+
+# Install goose binary
+COPY --from=goose /usr/local/bin/goose /usr/local/bin/goose
+
+# Install the framework plugin
+COPY .plugin/plugin.json /opt/goose-framework/.plugin/plugin.json
+COPY .agents/ /opt/goose-framework/.agents/
+COPY commands/ /opt/goose-framework/commands/
+COPY hooks/ /opt/goose-framework/hooks/
+COPY rules/ /opt/goose-framework/rules/
+COPY README.md /opt/goose-framework/README.md
+
+# Install toolshed MCP server
+COPY mcp-servers/toolshed/target/release/goose-toolshed /opt/goose-framework/toolshed/target/release/goose-toolshed
+
+# Install the plugin globally
+RUN goose plugin install /opt/goose-framework
+
+# Register the toolshed
+RUN goose configure --add-extension toolshed --type stdio --cmd /opt/goose-framework/toolshed/target/release/goose-toolshed
+
+EXPOSE 3284
+
+ENTRYPOINT ["goose", "serve", "--host", "0.0.0.0", "--port", "3284"]
