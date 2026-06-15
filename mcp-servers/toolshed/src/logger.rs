@@ -36,6 +36,7 @@ pub struct AuditEntry {
 #[serde(rename_all = "snake_case")]
 pub enum AuditResult {
     Success,
+    #[allow(dead_code)]
     Failure,
     Blocked,
 }

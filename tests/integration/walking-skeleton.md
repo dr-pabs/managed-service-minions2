@@ -12,7 +12,7 @@ Your task is to run the end-to-end flow and verify every step.
 
 ## Instructions
 
-1. Load the orchestrator skill from `skills/orchestrator/SKILL.md`.
+1. Load the orchestrator skill from `.agents/skills/orchestrator/SKILL.md`.
 2. Process this user message: "Review PR #1 in goose-agent-framework/test-repo"
 3. Classify the intent. Expected: `code_review`.
 4. Spawn the code-reviewer agent using the `delegate` tool with:

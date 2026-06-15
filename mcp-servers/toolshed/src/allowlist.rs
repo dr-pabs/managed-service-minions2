@@ -77,6 +77,7 @@ impl AllowlistManager {
     }
 
     /// List all registered agent types.
+    #[allow(dead_code)]
     pub fn agents(&self) -> Vec<String> {
         self.allowlists.keys().cloned().collect()
     }
