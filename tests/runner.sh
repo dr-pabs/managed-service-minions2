@@ -35,7 +35,7 @@ fi
 
 # ── Gate 2: Orchestrator Identity ──
 echo "── Gate 2: Orchestrator Identity ──"
-OUT=$(goose run --provider anthropic --model claude-sonnet-4-6 --no-session -t "Classify: 1)Review PR #342→code_review 2)What's the status of INC00421?→ticket_lookup 3)Fix INC00421 and create a PR→ticket_fix_pr 4)Is this SQL query vulnerable?→security_audit 5)Find source of login timeout→code_explore 6)Hello→unknown. Return ONLY {\"passed\":6,\"failed\":0,\"all_passed\":true}" --output-format json --max-turns 10 2>&1)
+OUT=$(goose run --provider anthropic --model claude-sonnet-4-6 --no-session -t "Classify: 1)Review PR #342→code_review 2)What's the status of INC00421?→ticket_lookup 3)Fix INC00421 and create a PR→ticket_fix_pr 4)Is this SQL query vulnerable?→security_audit 5)Find source of login timeout→code_explore 6)Hello→unknown. Return ONLY {\"passed\":6,\"failed\":0,\"all_passed\":true}" --output-format json --max-turns 10 2>&1 || true)
 if echo "$OUT" | python3 -c "import sys,json; t=sys.stdin.read(); print('OK' if '\"all_passed\":true' in t else 'FAIL')" 2>/dev/null | grep -q OK; then
   pass "orchestrator-identity (6 intents)"
 else
