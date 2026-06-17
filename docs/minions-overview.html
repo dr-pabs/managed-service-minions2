@@ -857,35 +857,128 @@ hr.dim{border:none;border-top:1px solid var(--border);margin:28px 0}
 
   <!-- Observability Pipeline -->
   <div class="eyebrow">How It Works</div>
-  <div class="h2" style="margin-bottom:6px">The Observability Pipeline</div>
-  <p class="lead" style="margin-bottom:24px">Logs flow from the Toolshed proxy to Azure Log Analytics automatically. No separate metrics database, no log shipping agent to manage.</p>
+  <div class="h2" style="margin-bottom:6px">Two Data Paths — Logs and Database</div>
+  <p class="lead" style="margin-bottom:24px">Observability is served by two complementary stores: a streaming log pipeline for real-time monitoring, and a structured SQLite database for durable session records.</p>
 
-  <div class="grid-2" style="margin-bottom:32px;align-items:start;gap:24px">
-    <div style="display:flex;flex-direction:column;gap:0">
-      <div class="pipe-card" style="border-color:rgba(168,85,247,.45)">
-        <div class="pipe-card-title" style="color:var(--purple)">Toolshed MCP Proxy (Rust)</div>
-        <div class="pipe-card-body">Every tool call from every agent passes through here. It checks the allowlist, applies rate limiting, then writes a structured JSON audit log to stdout — whether the call succeeded or was blocked.</div>
-      </div>
-      <div class="pipe-arrow">↓<br><span style="font-size:10px;color:var(--txt3);font-style:italic">stdout JSON · one line per tool call</span></div>
-      <div class="pipe-card" style="border-color:rgba(79,143,255,.4)">
-        <div class="pipe-card-title" style="color:var(--blue)">Azure Container Apps Console</div>
-        <div class="pipe-card-body">Container Apps captures stdout from every running container automatically. No log agent to deploy or maintain — it is built in to the runtime. Bot session events (session_start / session_end) also flow this way.</div>
-      </div>
-      <div class="pipe-arrow">↓<br><span style="font-size:10px;color:var(--txt3);font-style:italic">Container Insights ingestion · ≤2 min lag</span></div>
-      <div class="pipe-card" style="border-color:rgba(61,214,140,.4)">
-        <div class="pipe-card-title" style="color:var(--green)">Log Analytics Workspace</div>
-        <div class="pipe-card-body">All logs land in <code>ContainerAppConsoleLogs_CL</code>. The Dashboard API runs KQL queries against this table for every view — sessions, costs, tool stats. Alert rules fire from here too, with no additional pipeline.</div>
-      </div>
-      <div class="pipe-arrow">↓<br><span style="font-size:10px;color:var(--txt3);font-style:italic">KQL queries via Azure SDK</span></div>
-      <div class="pipe-card" style="border-color:rgba(251,191,36,.4)">
-        <div class="pipe-card-title" style="color:var(--amber)">Dashboard API &amp; React SPA</div>
-        <div class="pipe-card-body">Express API on port 3001 serves JSON from KQL results. Live events pushed to the browser via SSE at <code>/api/live/stream</code>. The React front-end renders sessions, costs, tool stats, and config without any manual refresh.</div>
+  <!-- Two-column pipeline layout -->
+  <div class="grid-2" style="margin-bottom:24px;align-items:start;gap:20px">
+
+    <!-- Path 1: Log Analytics -->
+    <div>
+      <div style="background:rgba(61,214,140,.08);border:1px solid rgba(61,214,140,.3);border-radius:8px;padding:8px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--green);margin-bottom:12px">Path 1 — Streaming Logs (Real-Time)</div>
+      <div style="display:flex;flex-direction:column;gap:0">
+        <div class="pipe-card" style="border-color:rgba(168,85,247,.45)">
+          <div class="pipe-card-title" style="color:var(--purple)">Toolshed MCP Proxy (Rust)</div>
+          <div class="pipe-card-body">Every tool call from every agent passes through here. It checks the allowlist, applies rate limiting, then writes a structured JSON audit log line to stdout — whether the call succeeded or was blocked.</div>
+        </div>
+        <div class="pipe-arrow">↓<br><span style="font-size:10px;color:var(--txt3);font-style:italic">stdout JSON · one line per tool call</span></div>
+        <div class="pipe-card" style="border-color:rgba(79,143,255,.4)">
+          <div class="pipe-card-title" style="color:var(--blue)">Azure Container Apps Console</div>
+          <div class="pipe-card-body">Container Apps captures stdout from every container automatically. No log agent to manage — it is built in to the runtime. Bot <code>session_start</code> / <code>session_end</code> events also flow this way.</div>
+        </div>
+        <div class="pipe-arrow">↓<br><span style="font-size:10px;color:var(--txt3);font-style:italic">Container Insights ingestion · ≤2 min lag</span></div>
+        <div class="pipe-card" style="border-color:rgba(61,214,140,.4)">
+          <div class="pipe-card-title" style="color:var(--green)">Log Analytics Workspace</div>
+          <div class="pipe-card-body">All logs land in <code>ContainerAppConsoleLogs_CL</code>. KQL queries power every real-time dashboard view. Alert rules (P1/P2/P3) fire from here — no additional pipeline needed.</div>
+        </div>
+        <div class="pipe-arrow">↓<br><span style="font-size:10px;color:var(--txt3);font-style:italic">KQL queries via Azure SDK</span></div>
+        <div class="pipe-card" style="border-color:rgba(251,191,36,.4)">
+          <div class="pipe-card-title" style="color:var(--amber)">Dashboard API &amp; React SPA</div>
+          <div class="pipe-card-body">Express API on port 3001. Live events pushed to the browser via SSE at <code>/api/live/stream</code>. KQL-backed views for costs, tool stats, and config.</div>
+        </div>
       </div>
     </div>
 
+    <!-- Path 2: SQLite -->
     <div>
-      <div class="eyebrow" style="margin-bottom:10px">Audit Log Format</div>
-      <p style="font-size:13px;color:var(--txt2);margin-bottom:12px;line-height:1.6">Every Toolshed log line is structured JSON. The <code>correlation_id</code> ties every log entry back to the session that initiated the work — enabling a full trace without any additional instrumentation.</p>
+      <div style="background:rgba(79,143,255,.08);border:1px solid rgba(79,143,255,.3);border-radius:8px;padding:8px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--blue);margin-bottom:12px">Path 2 — SQLite Database (Durable)</div>
+      <div style="display:flex;flex-direction:column;gap:0">
+        <div class="pipe-card" style="border-color:rgba(251,191,36,.4)">
+          <div class="pipe-card-title" style="color:var(--amber)">Orchestrator</div>
+          <div class="pipe-card-body">Writes one row to <code>framework_sessions</code> when a session starts, and one row to <code>minion_runs</code> each time an agent is dispatched. Status, attempt count, and token totals are updated as the session progresses.</div>
+        </div>
+        <div class="pipe-arrow" style="display:flex;gap:14px;justify-content:center;align-items:center;font-size:13px;padding:6px 0">
+          <div style="text-align:center">↓<br><span style="font-size:10px;color:var(--txt3);font-style:italic">sessions &amp; minion runs</span></div>
+          <div style="text-align:center;color:var(--txt3)">and</div>
+        </div>
+        <div class="pipe-card" style="border-color:rgba(168,85,247,.45)">
+          <div class="pipe-card-title" style="color:var(--purple)">Toolshed MCP Proxy (Rust)</div>
+          <div class="pipe-card-body">Also writes every tool call to the <code>tool_calls</code> table and every allowlist block to the <code>allowlist_denials</code> table — providing a relational, indexed audit trail queryable by agent, tool, or correlation ID.</div>
+        </div>
+        <div class="pipe-arrow">↓<br><span style="font-size:10px;color:var(--txt3);font-style:italic">SQL writes · low-latency · indexed</span></div>
+        <div class="pipe-card" style="border-color:rgba(45,212,191,.5)">
+          <div class="pipe-card-title" style="color:var(--teal)">SQLite — <code>/data/goose-sessions.db</code></div>
+          <div class="pipe-card-body">Co-located with the Orchestrator container. Four tables: <code>framework_sessions</code>, <code>minion_runs</code>, <code>tool_calls</code>, <code>allowlist_denials</code>. Backed up to Azure Blob Storage every 15 minutes. RPO: 15 minutes.</div>
+        </div>
+        <div class="pipe-arrow" style="display:flex;gap:14px;justify-content:center;align-items:center;font-size:13px;padding:6px 0">
+          <div style="text-align:center">↓<br><span style="font-size:10px;color:var(--txt3);font-style:italic">SQL queries</span></div>
+          <div style="text-align:center;font-size:18px;color:var(--txt3)">+</div>
+          <div style="text-align:center">→<br><span style="font-size:10px;color:var(--txt3);font-style:italic">WAL backup every 15 min</span></div>
+        </div>
+        <div class="grid-2" style="gap:10px">
+          <div class="pipe-card" style="border-color:rgba(251,191,36,.4)">
+            <div class="pipe-card-title" style="color:var(--amber)">Dashboard API</div>
+            <div class="pipe-card-body">Reads SQLite for session history, minion run details, and per-agent token totals at <code>/api/sessions</code>.</div>
+          </div>
+          <div class="pipe-card" style="border-color:rgba(79,143,255,.3)">
+            <div class="pipe-card-title" style="color:var(--blue)">Azure Blob Storage</div>
+            <div class="pipe-card-body">Container: <code>sqlite-backups</code>. WAL snapshot every 15 min. 7-day retention. Restored to container on startup if no DB found.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SQLite Schema -->
+  <div class="card" style="margin-bottom:32px;padding:22px">
+    <div class="eyebrow" style="margin-bottom:8px">SQLite Schema</div>
+    <div class="h3" style="margin-bottom:4px">Four Tables — Session State and Security Audit</div>
+    <p style="font-size:13px;color:var(--txt2);margin-bottom:16px;line-height:1.6">The schema is defined in <code>scripts/init-db.sql</code> and applied at container startup. Every table is indexed on correlation ID and agent for fast dashboard queries.</p>
+    <div class="grid-2" style="gap:12px">
+      <div class="card-sm" style="border-color:rgba(79,143,255,.3)">
+        <div style="font-size:12px;font-weight:700;color:var(--blue);font-family:monospace;margin-bottom:6px">framework_sessions</div>
+        <div style="font-size:11px;color:var(--txt2);line-height:1.7">One row per orchestration session.<br>
+          <code style="color:var(--teal)">session_id</code> &nbsp;·&nbsp; <code style="color:var(--teal)">correlation_id</code><br>
+          <code style="color:var(--teal)">status</code> — active | completed | dead_lettered<br>
+          <code style="color:var(--teal)">minion_count</code> &nbsp;·&nbsp; <code style="color:var(--teal)">tool_call_count</code><br>
+          <code style="color:var(--teal)">created_at</code> &nbsp;·&nbsp; <code style="color:var(--teal)">completed_at</code>
+        </div>
+      </div>
+      <div class="card-sm" style="border-color:rgba(168,85,247,.3)">
+        <div style="font-size:12px;font-weight:700;color:var(--purple);font-family:monospace;margin-bottom:6px">minion_runs</div>
+        <div style="font-size:11px;color:var(--txt2);line-height:1.7">One row per agent dispatch.<br>
+          <code style="color:var(--teal)">id</code> — child correlation ID<br>
+          <code style="color:var(--teal)">agent</code> — e.g. code-writer<br>
+          <code style="color:var(--teal)">status</code> — running | completed | failed | dead_lettered<br>
+          <code style="color:var(--teal)">attempts</code> &nbsp;·&nbsp; <code style="color:var(--teal)">max_turns</code> &nbsp;·&nbsp; <code style="color:var(--teal)">last_error</code>
+        </div>
+      </div>
+      <div class="card-sm" style="border-color:rgba(61,214,140,.3)">
+        <div style="font-size:12px;font-weight:700;color:var(--green);font-family:monospace;margin-bottom:6px">tool_calls</div>
+        <div style="font-size:11px;color:var(--txt2);line-height:1.7">One row per tool call (all results).<br>
+          <code style="color:var(--teal)">correlation_id</code> &nbsp;·&nbsp; <code style="color:var(--teal)">agent</code><br>
+          <code style="color:var(--teal)">tool_name</code> &nbsp;·&nbsp; <code style="color:var(--teal)">params</code> (JSON)<br>
+          <code style="color:var(--teal)">result</code> — success | failure | blocked<br>
+          <code style="color:var(--teal)">duration_ms</code> &nbsp;·&nbsp; <code style="color:var(--teal)">output_size_bytes</code>
+        </div>
+      </div>
+      <div class="card-sm" style="border-color:rgba(248,113,113,.3)">
+        <div style="font-size:12px;font-weight:700;color:var(--red);font-family:monospace;margin-bottom:6px">allowlist_denials</div>
+        <div style="font-size:11px;color:var(--txt2);line-height:1.7">Security audit — blocked calls only.<br>
+          <code style="color:var(--teal)">correlation_id</code> &nbsp;·&nbsp; <code style="color:var(--teal)">agent</code><br>
+          <code style="color:var(--teal)">tool_name</code> — what was attempted<br>
+          <code style="color:var(--teal)">params</code> — what was passed<br>
+          <code style="color:var(--teal)">reason</code> — allowlist_denied | rate_limited
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Audit log format + routes side by side -->
+  <div class="grid-2" style="margin-bottom:32px;align-items:start;gap:24px">
+    <div>
+      <div class="eyebrow" style="margin-bottom:10px">Toolshed Audit Log Format</div>
+      <p style="font-size:13px;color:var(--txt2);margin-bottom:12px;line-height:1.6">Every Toolshed log line is structured JSON written to both stdout (Log Analytics path) and the <code>tool_calls</code> table (SQLite path). The <code>correlation_id</code> links it to the originating session in both stores.</p>
       <div class="obs-log-block">
 <span style="color:var(--txt3)">// Successful tool call</span>
 {
@@ -897,7 +990,7 @@ hr.dim{border:none;border-top:1px solid var(--border);margin:28px 0}
   <span class="obs-log-key">"duration_ms"</span>: <span class="obs-log-num">180</span>
 }
 
-<span style="color:var(--txt3)">// Blocked call — security event (governance)</span>
+<span style="color:var(--txt3)">// Blocked call — written to allowlist_denials table</span>
 {
   <span class="obs-log-key">"ts"</span>: <span class="obs-log-str">"2026-06-17T09:41:25.001Z"</span>,
   <span class="obs-log-key">"correlation_id"</span>: <span class="obs-log-str">"corr_a1b2c3d4"</span>,
@@ -906,23 +999,23 @@ hr.dim{border:none;border-top:1px solid var(--border);margin:28px 0}
   <span class="obs-log-key">"result"</span>: <span class="obs-log-str">"blocked"</span>,
   <span class="obs-log-key">"reason"</span>: <span class="obs-log-str">"allowlist_denied"</span>
 }</div>
-      <p style="font-size:11px;color:var(--txt3);margin-top:10px">Blocked calls are never silently dropped — every denial is a queryable, alertable event. The expected steady-state is zero denials.</p>
+      <p style="font-size:11px;color:var(--txt3);margin-top:10px">Blocked calls are never silently dropped. Every denial lands in <code>allowlist_denials</code> and Log Analytics — two queryable, alertable records of every governance event.</p>
+    </div>
 
-      <div class="card" style="margin-top:20px;padding:16px">
-        <div class="h3" style="margin-bottom:8px">Dashboard API Routes</div>
-        <table class="obs-table">
-          <thead><tr><th>Route</th><th>What It Returns</th></tr></thead>
-          <tbody>
-            <tr><td><code>/api/live</code></td><td style="color:var(--txt2)">Active agents, recent completions, today's stats</td></tr>
-            <tr><td><code>/api/live/stream</code></td><td style="color:var(--txt2)">SSE stream — real-time tool call events</td></tr>
-            <tr><td><code>/api/sessions</code></td><td style="color:var(--txt2)">Session history with trigger, agents, duration, status</td></tr>
-            <tr><td><code>/api/sessions/:id/tree</code></td><td style="color:var(--txt2)">Full agent call tree for one correlation ID</td></tr>
-            <tr><td><code>/api/cost</code></td><td style="color:var(--txt2)">Daily token cost by agent and total</td></tr>
-            <tr><td><code>/api/tools</code></td><td style="color:var(--txt2)">Per-tool call count, avg latency, error rate</td></tr>
-            <tr><td><code>/api/config</code></td><td style="color:var(--txt2)">Live allowlists and environment metadata</td></tr>
-          </tbody>
-        </table>
-      </div>
+    <div class="card" style="padding:16px">
+      <div class="h3" style="margin-bottom:8px">Dashboard API Routes</div>
+      <table class="obs-table">
+        <thead><tr><th>Route</th><th>Source</th><th>What It Returns</th></tr></thead>
+        <tbody>
+          <tr><td><code>/api/live</code></td><td><span class="pill p-green" style="font-size:10px">Log Analytics</span></td><td style="color:var(--txt2)">Active agents, recent completions, today's stats</td></tr>
+          <tr><td><code>/api/live/stream</code></td><td><span class="pill p-green" style="font-size:10px">Log Analytics</span></td><td style="color:var(--txt2)">SSE stream — real-time tool call events</td></tr>
+          <tr><td><code>/api/sessions</code></td><td><span class="pill p-teal" style="font-size:10px">SQLite</span></td><td style="color:var(--txt2)">Session history — trigger, agents, duration, status</td></tr>
+          <tr><td><code>/api/sessions/:id/tree</code></td><td><span class="pill p-teal" style="font-size:10px">SQLite</span></td><td style="color:var(--txt2)">Full agent call tree for one correlation ID</td></tr>
+          <tr><td><code>/api/cost</code></td><td><span class="pill p-teal" style="font-size:10px">SQLite</span></td><td style="color:var(--txt2)">Daily token cost from <code>minion_runs.tokens_used</code></td></tr>
+          <tr><td><code>/api/tools</code></td><td><span class="pill p-green" style="font-size:10px">Log Analytics</span></td><td style="color:var(--txt2)">Per-tool call count, avg latency, error rate</td></tr>
+          <tr><td><code>/api/config</code></td><td><span class="pill p-blue" style="font-size:10px">Toolshed</span></td><td style="color:var(--txt2)">Live allowlists and environment metadata</td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
