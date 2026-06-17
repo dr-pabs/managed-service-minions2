@@ -79,7 +79,7 @@ Each component is a standalone Goose extension with its own manifest, code, and 
 - **Independent versioning** — the Code Reviewer prompt can change without redeploying the Slack bot
 - **Independent deployment** — GitHub Actions deploys only changed extensions
 - **Goose-native** — no new packaging format to invent; uses Goose's extension model
-- **Composable** — extensions declare dependencies (`requires: [mcp-toolshed]`) 
+- **Composable** — extensions declare dependencies (`requires: [mcp-toolshed]`)
 - **Testing isolation** — each extension can be tested independently
 
 ### Consequences

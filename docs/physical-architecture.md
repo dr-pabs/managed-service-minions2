@@ -435,6 +435,10 @@ graph TB
 | Container Registry | No (Microsoft-managed, geo-replicated optional) | Geo-replication for production |
 | SQLite (per replica) | Yes (local storage) | 15-min WAL backup to Blob; restore on restart |
 
+______________________________________________________________________
+
+## Disaster Recovery
+
 ### Recovery Time Objectives
 
 | Scenario | RTO | RPO |
