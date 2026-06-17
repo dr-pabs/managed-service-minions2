@@ -65,7 +65,7 @@ shellcheck hooks/*.sh
 ### Integration tests (goose run)
 
 ```bash
-goose run -i tests/integration/walking-skeleton.yaml --output-format json
+goose run -i tests/integration/walking-skeleton.md --output-format json --max-turns 30
 # Must exit 0 with completed minion result.
 ```
 
