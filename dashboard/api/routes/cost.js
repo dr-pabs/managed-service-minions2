@@ -32,8 +32,8 @@ const round2 = n => Math.round(n * 100) / 100;
 router.get('/', async (_req, res) => {
   try {
     const [daily, byAgent] = await Promise.all([
-      query(DAILY_KQL,    'P7D',  MOCK_DAILY),
-      query(BY_AGENT_KQL, 'P30D', MOCK_BY_AGENT),
+      query(DAILY_KQL,    'P7D'),
+      query(BY_AGENT_KQL, 'P30D'),
     ]);
 
     const today     = daily.at(-1)?.daily_cost ?? 0;
@@ -60,23 +60,5 @@ router.get('/', async (_req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-const MOCK_DAILY = [
-  { date: '2026-06-11T00:00:00.000Z', daily_cost: 5.12 },
-  { date: '2026-06-12T00:00:00.000Z', daily_cost: 7.89 },
-  { date: '2026-06-13T00:00:00.000Z', daily_cost: 6.45 },
-  { date: '2026-06-14T00:00:00.000Z', daily_cost: 3.21 },
-  { date: '2026-06-15T00:00:00.000Z', daily_cost: 10.55 },
-  { date: '2026-06-16T00:00:00.000Z', daily_cost: 8.23 },
-  { date: '2026-06-17T00:00:00.000Z', daily_cost: 4.23 },
-];
-
-const MOCK_BY_AGENT = [
-  { agent: 'code-reviewer',    cost: 12.45, calls: 89  },
-  { agent: 'pr-crafter',       cost:  8.92, calls: 52  },
-  { agent: 'ticket-analyst',   cost:  5.67, calls: 45  },
-  { agent: 'code-explorer',    cost:  4.10, calls: 156 },
-  { agent: 'security-auditor', cost:  3.58, calls: 5   },
-];
 
 module.exports = router;

@@ -25,7 +25,7 @@ ContainerAppConsoleLogs_CL
 
 router.get('/', async (_req, res) => {
   try {
-    const rows = await query(SESSION_LIST_KQL, 'P7D', MOCK_SESSIONS);
+    const rows = await query(SESSION_LIST_KQL, 'P7D');
     res.json(rows.map(r => ({
       corr_id:  r.corr_id,
       channel:  r.channel  || 'unknown',
@@ -52,7 +52,7 @@ ContainerAppConsoleLogs_CL
 | order by ts asc
 `;
   try {
-    const rows = await query(kql, 'P30D', MOCK_TREE_ROWS);
+    const rows = await query(kql, 'P30D');
     const byAgent = {};
     for (const row of rows) {
       if (!byAgent[row.agent]) {
@@ -74,26 +74,5 @@ ContainerAppConsoleLogs_CL
     res.status(500).json({ error: err.message });
   }
 });
-
-const MOCK_SESSIONS = [
-  { corr_id: 'corr_a1b2c3d4', channel: 'slack',  user: 'alice', status: 'completed', ts: '2026-06-17T08:42:00.000Z', retries: 0 },
-  { corr_id: 'corr_b2c3d4e5', channel: 'teams',  user: 'bob',   status: 'completed', ts: '2026-06-17T08:35:00.000Z', retries: 1 },
-  { corr_id: 'corr_c3d4e5f6', channel: 'slack',  user: 'carol', status: 'failed',    ts: '2026-06-17T08:20:00.000Z', retries: 2 },
-  { corr_id: 'corr_d4e5f6g7', channel: 'teams',  user: 'dave',  status: 'completed', ts: '2026-06-17T08:10:00.000Z', retries: 0 },
-  { corr_id: 'corr_e5f6g7h8', channel: 'cron',   user: 'system',status: 'completed', ts: '2026-06-17T07:00:00.000Z', retries: 0 },
-  { corr_id: 'corr_f6g7h8i9', channel: 'slack',  user: 'eve',   status: 'active',    ts: '2026-06-17T10:41:00.000Z', retries: 0 },
-];
-
-const MOCK_TREE_ROWS = [
-  { ts: '2026-06-17T08:42:01Z', agent: 'ticket-analyst', tool: 'ado.query_work_items',      result: 'success', duration_ms: 600, params: '{"ticket_id":"INC00421"}' },
-  { ts: '2026-06-17T08:42:09Z', agent: 'code-explorer',  tool: 'filesystem.read_file',       result: 'success', duration_ms: 200, params: '{"path":"src/auth.js"}' },
-  { ts: '2026-06-17T08:42:11Z', agent: 'code-explorer',  tool: 'filesystem.read_file',       result: 'success', duration_ms: 150, params: '{"path":"src/login.js"}' },
-  { ts: '2026-06-17T08:42:20Z', agent: 'pr-crafter',     tool: 'github.create_branch',       result: 'success', duration_ms: 400, params: '{"name":"fix/INC00421"}' },
-  { ts: '2026-06-17T08:42:24Z', agent: 'pr-crafter',     tool: 'filesystem.write_file',      result: 'success', duration_ms: 300, params: '{"path":"src/auth.js"}' },
-  { ts: '2026-06-17T08:42:27Z', agent: 'pr-crafter',     tool: 'github.commit',              result: 'success', duration_ms: 500, params: '{"message":"Fix INC00421"}' },
-  { ts: '2026-06-17T08:42:32Z', agent: 'pr-crafter',     tool: 'github.create_pr',           result: 'success', duration_ms: 800, params: '{"title":"Fix INC00421"}' },
-  { ts: '2026-06-17T08:42:43Z', agent: 'code-reviewer',  tool: 'github.get_pr_diff',         result: 'success', duration_ms: 500, params: '{"pr_number":342}' },
-  { ts: '2026-06-17T08:42:48Z', agent: 'code-reviewer',  tool: 'github.create_review_comment',result: 'success',duration_ms: 300, params: '{}' },
-];
 
 module.exports = router;

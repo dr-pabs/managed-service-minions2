@@ -29,10 +29,10 @@ ContainerAppConsoleLogs_CL
 
 async function getLiveData() {
   const [recent, stats] = await Promise.all([
-    query(RECENT_KQL, 'PT1H', MOCK_RECENT),
-    query(STATS_KQL,  'P1D',  MOCK_STATS),
+    query(RECENT_KQL, 'PT1H'),
+    query(STATS_KQL,  'P1D'),
   ]);
-  const s = stats[0] ?? MOCK_STATS[0];
+  const s = stats[0] ?? { completed_today: 0, failed_today: 0, avg_duration_ms: 0 };
   const ms = s.avg_duration_ms ?? 72000;
   const avgFmt = ms >= 60000
     ? `${Math.floor(ms / 60000)}m ${Math.round((ms % 60000) / 1000)}s`
@@ -72,14 +72,5 @@ router.get('/stream', (req, res) => {
 
   req.on('close', () => { clearInterval(poll); unsubWs(); });
 });
-
-const MOCK_RECENT = [
-  { minion: 'code-reviewer',   status: 'completed', ts: '10:40:50' },
-  { minion: 'security-auditor',status: 'completed', ts: '10:38:00' },
-  { minion: 'code-explorer',   status: 'failed',    ts: '10:37:42' },
-  { minion: 'ticket-analyst',  status: 'completed', ts: '10:35:20' },
-];
-
-const MOCK_STATS = [{ completed_today: 127, failed_today: 2, avg_duration_ms: 72000 }];
 
 module.exports = router;
