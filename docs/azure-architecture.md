@@ -200,11 +200,12 @@ Examples:
 | **Container App: Orchestrator** | `ca-orchestrator-{env}` | — | 1 vCPU, 2 GB, 1–5 replicas |
 | **Container App: Slack Bot** | `ca-slackbot-{env}` | — | 0.5 vCPU, 1 GB, 1 replica |
 | **Container App: Teams Bot** | `ca-teamsbot-{env}` | — | 0.5 vCPU, 1 GB, 1 replica |
+| **Container App: Dashboard** | `ca-dashboard-{env}` | — | 0.5 vCPU, 1 GB, 1 replica — React SPA + Express API |
 | **Service Bus Namespace** | `sb-goosefw-{env}` | Standard | Sessions, DLQ, duplicate detection |
 | **Service Bus Topic** | `minion-tasks` | — | All minion tasks |
 | **Service Bus Subscriptions** | `code-explorer`, `code-reviewer`, `pr-crafter`, `ticket-analyst`, `security-auditor` | — | Filtered by minion_type property |
 | **Storage Account** | `stgoosefw{env}` | LRS / ZRS | Tables + Blobs |
-| **Table** | `ToolCallLog` | — | Immutable tool call log |
+| **Table** | `ToolCallLog` | — | Immutable tool call log (designed; toolshed currently writes to stdout → Log Analytics; direct Table writes are a future option) |
 | **Blob Container** | `minion-outputs` | Cool | Full minion output artifacts |
 | **Blob Container** | `sqlite-backups` | Cool | Orchestrator SQLite WAL snapshots |
 | **Key Vault** | `kv-goosefw-{env}` | Standard | MCP credentials, bot secrets |

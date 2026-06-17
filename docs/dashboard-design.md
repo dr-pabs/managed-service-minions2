@@ -1,14 +1,16 @@
 # Dashboard Design — Agent Dashboard Extension (Phase 4)
 
 > **Date:** 2026-06-06\
-> **Status:** Draft\
+> **Status:** Implemented (2026-06-17)\
 > **Complements:** ADR-018 (Observability), `logical-architecture.md` §15
+>
+> **Build discoveries (2026-06-17):** Dashboard implemented as a React SPA (port 3000) backed by an Express API server (port 3001). Data sources: (1) **Log Analytics Workspace** via `@azure/monitor-query` KQL — the toolshed writes `AuditEntry` JSON lines to stdout and Container Apps collects them into Log Analytics (no direct Table Storage writes from toolshed); (2) **goose serve WebSocket** (port 3284) proxied as Server-Sent Events for real-time session streaming. Set `LA_MOCK=true` to return hardcoded mock data without Azure credentials. Prompt version registry deferred to Phase 2.
 
 ______________________________________________________________________
 
 ## Overview
 
-The custom `agent-dashboard` is a Goose extension (built via `apps__create_app`) providing Goose-specific views that Azure Managed Grafana cannot. It reads from Azure Table Storage and Log Analytics. It is a Phase 4 deliverable — Grafana covers operational needs from Day 1.
+The custom `agent-dashboard` is a React SPA with an Express API layer providing Goose-specific observability views that Azure Managed Grafana cannot. It reads from Log Analytics via KQL and streams live events from goose serve. It is a Phase 4 deliverable — Grafana covers operational needs from Day 1.
 
 ## Navigation Model
 
