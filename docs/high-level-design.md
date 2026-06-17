@@ -370,7 +370,7 @@ ______________________________________________________________________
 | **Triggers** | "Create a PR for...", "Fix work item AB#1234 and open a PR", downstream from Ticket Analyst |
 | **System Prompt Focus** | "You are a PR author. Given a problem description and code context, implement the fix, write tests, create a branch, commit with a meaningful message, and open a PR. Follow the repo's CONTRIBUTING.md. Link the PR to the relevant ticket/work item. Support GitHub and Azure DevOps repos." |
 | **Tool Allowlist** | GitHub MCP (branches, commits, PRs), Azure DevOps MCP (branches, commits, PRs), Filesystem MCP (read/write), Git MCP, Shell MCP (build/test) |
-| **Output Schema** | `{ pr_url: "...", platform: "github|ado", branch: "...", commits: [...], files_changed: [...], linked_work_items: [...], summary: "..." }` |
+| **Output Schema** | `{ pr_url: "...", platform: "github or ado", branch: "...", commits: [...], files_changed: [...], linked_work_items: [...], summary: "..." }` |
 | **Max Turns** | 30 |
 | **Timeout** | 15 minutes |
 
@@ -803,7 +803,7 @@ GitHub serves multiple roles in the framework, not just as an integration target
 The Goose agent framework itself lives in GitHub:
 
 ```
-github.com/your-org/goose-agent-framework/
+github.com/dr-pabs/managed-service-minions2
 ├── extensions/
 │   ├── orchestrator/
 │   │   ├── extension.yaml

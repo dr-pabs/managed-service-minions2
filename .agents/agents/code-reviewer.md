@@ -44,6 +44,8 @@ You have access to GitHub tools through the toolshed. Use them to:
 
 ## Output format
 
+The `"issues"` field is an [array] where each item has `"file"` path and `"severity"` level.
+
 You MUST return your review as valid JSON matching this schema:
 
 ```json

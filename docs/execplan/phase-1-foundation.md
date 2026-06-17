@@ -14,7 +14,7 @@ After Phase 1 is complete:
 
 ```bash
 # One command to install the entire framework
-goose plugin install https://github.com/org/goose-agent-framework
+goose plugin install https://github.com/dr-pabs/managed-service-minions2
 
 # Send work from chat platforms
 # Slack: "Review PR #342"  →  threaded reply with structured review
@@ -596,7 +596,7 @@ rm -rf bots/
     "author": {
         "name": "Goose Agent Framework Team"
     },
-    "repository": "https://github.com/org/goose-agent-framework",
+    "repository": "https://github.com/dr-pabs/managed-service-minions2",
     "license": "Apache-2.0",
     "agents": "./.agents/agents/",
     "skills": "./.agents/skills/",

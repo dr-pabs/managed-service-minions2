@@ -370,7 +370,7 @@ Run nightly (or on demand) against a staging environment with real MCP servers p
 
 ```text
 Staging environment:
-├── Test GitHub repo: org/goose-framework-test
+├── Test GitHub repo: dr-pabs/managed-service-minions2-test
 │   ├── Pre-seeded PRs (3 open, 2 with known bugs)
 │   └── Known issues: SQL injection in test/unsafe-query.ts
 ├── Test Azure DevOps project: GooseFrameworkTest

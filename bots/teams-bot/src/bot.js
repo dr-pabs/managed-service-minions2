@@ -19,6 +19,55 @@ let ws = null;
 let msgId = 0;
 const pending = new Map();
 
+// Per-user session isolation: each Teams user gets their own goose session.
+const sessions = new Map();
+
+// Per-session streaming buffers: accumulate AgentMessageChunk events and
+// resolve the promise that sendToGoose is waiting on when the final chunk arrives.
+const streamingBuffers = new Map();
+
+// ── Incoming WebSocket message handler (extracted for testability) ──────────
+
+function processWsMessage(data) {
+  try {
+    const msg = JSON.parse(data.toString());
+
+    // JSON-RPC response to a sendACP call (has an id)
+    if (msg.id != null && pending.has(msg.id)) {
+      pending.get(msg.id)(msg);
+      pending.delete(msg.id);
+      return;
+    }
+
+    // Streaming chunk from the agent — accumulate until last=true
+    if (msg.method === 'notifications/AgentMessageChunk') {
+      const sid = msg.params?.sessionId;
+      const buf = streamingBuffers.get(sid);
+      if (!buf) return;
+
+      buf.chunks.push(msg.params?.chunk?.text || '');
+
+      if (msg.params?.last === true) {
+        streamingBuffers.delete(sid);
+        buf.resolve(buf.chunks.join(''));
+      }
+      return;
+    }
+
+    // Fallback completion signal
+    if (msg.method === 'notifications/AgentStatus' && msg.params?.status === 'done') {
+      const sid = msg.params?.sessionId;
+      const buf = streamingBuffers.get(sid);
+      if (buf) {
+        streamingBuffers.delete(sid);
+        buf.resolve(buf.chunks.join(''));
+      }
+    }
+  } catch (_) {}
+}
+
+// ── ACP Client ─────────────────────────────────────────────────────────────
+
 function connectACP() {
   return new Promise((resolve, reject) => {
     const url = `${GOOSE_URL.replace('http', 'ws')}/acp?token=${GOOSE_SECRET}`;
@@ -33,15 +82,7 @@ function connectACP() {
       }).then(resolve).catch(reject);
     });
 
-    ws.on('message', (data) => {
-      try {
-        const msg = JSON.parse(data.toString());
-        if (msg.id && pending.has(msg.id)) {
-          pending.get(msg.id)(msg);
-          pending.delete(msg.id);
-        }
-      } catch (_) {}
-    });
+    ws.on('message', processWsMessage);
 
     ws.on('close', () => {
       console.log('[teams-bot] ACP disconnected. Reconnecting in 5s...');
@@ -69,26 +110,41 @@ function sendACP(method, params) {
   });
 }
 
-let sessionId = null;
-
-async function ensureSession() {
-  if (sessionId) return sessionId;
+async function ensureSession(userId) {
+  if (sessions.has(userId)) return sessions.get(userId);
   const result = await sendACP('session/new', {
     sessionId: null,
     cwd: '/tmp',
     mcpServers: []
   });
-  sessionId = result.result.sessionId;
-  console.log(`[teams-bot] Session created: ${sessionId}`);
-  return sessionId;
+  const sid = result.result.sessionId;
+  sessions.set(userId, sid);
+  console.log(`[teams-bot] Session created for user ${userId}: ${sid}`);
+  return sid;
 }
 
-async function sendToGoose(userMessage) {
-  const sid = await ensureSession();
-  return sendACP('session/prompt', {
+async function sendToGoose(userMessage, userId) {
+  const sid = await ensureSession(userId);
+
+  // Register a streaming buffer before sending the prompt so no chunks are missed.
+  const responsePromise = new Promise((resolve, reject) => {
+    streamingBuffers.set(sid, { chunks: [], resolve, reject });
+    setTimeout(() => {
+      if (streamingBuffers.has(sid)) {
+        streamingBuffers.delete(sid);
+        reject(new Error('Response timeout after 120s'));
+      }
+    }, 120000);
+  });
+
+  // Send the prompt (returns an acknowledgement, not the final answer)
+  await sendACP('session/prompt', {
     sessionId: sid,
     prompt: [{ type: 'user', text: userMessage }]
   });
+
+  // Wait for streaming chunks to complete
+  return responsePromise;
 }
 
 // ── Teams Bot ──────────────────────────────────────────────────────────────
@@ -99,13 +155,14 @@ class GooseTeamsBot extends ActivityHandler {
 
     this.onMessage(async (context, next) => {
       const text = context.activity.text;
+      const userId = context.activity.from.id;
 
       // Typing indicator
       await context.sendActivity({ type: 'typing' });
 
       try {
-        const response = await sendToGoose(text, context.activity.from.id);
-        const reply = extractResponse(response);
+        // Send to goose — keyed on the Teams user ID for session isolation
+        const reply = await sendToGoose(text, userId);
 
         // Send Adaptive Card response
         await context.sendActivity({
@@ -119,7 +176,7 @@ class GooseTeamsBot extends ActivityHandler {
               body: [
                 {
                   type: 'TextBlock',
-                  text: reply,
+                  text: reply || '(no response)',
                   wrap: true
                 }
               ]
@@ -136,40 +193,46 @@ class GooseTeamsBot extends ActivityHandler {
   }
 }
 
-function extractResponse(response) {
-  try {
-    if (response?.result?.text) return response.result.text;
-    return JSON.stringify(response, null, 2).slice(0, 3000);
-  } catch (_) {
-    return '(unable to parse response)';
-  }
-}
+// ── Test Exports ───────────────────────────────────────────────────────────
+// Internal state and functions exported for unit tests only.
+module.exports = {
+  sessions,
+  streamingBuffers,
+  pending,
+  processWsMessage,
+  ensureSession,
+  sendToGoose,
+  /** Inject a mock WebSocket for testing. Resets msgId and pending state. */
+  _setWs(mockWs) { ws = mockWs; msgId = 0; pending.clear(); },
+  /** Reset all module-level state between tests. */
+  _reset() { sessions.clear(); streamingBuffers.clear(); pending.clear(); msgId = 0; ws = null; },
+};
 
 // ── Startup ────────────────────────────────────────────────────────────────
+if (require.main === module) {
+  (async () => {
+    console.log('[teams-bot] Starting...');
+    await connectACP();
 
-(async () => {
-  console.log('[teams-bot] Starting...');
-  await connectACP();
-
-  const adapter = new BotFrameworkAdapter({
-    appId: process.env.AZURE_AD_CLIENT_ID,
-    appPassword: process.env.AZURE_AD_CLIENT_SECRET
-  });
-
-  const bot = new GooseTeamsBot();
-
-  // Listen on port 3978 (Teams default) or PORT env var
-  const port = process.env.PORT || 3978;
-
-  const restify = require('restify');
-  const server = restify.createServer();
-  server.post('/api/messages', (req, res) => {
-    adapter.processActivity(req, res, async (context) => {
-      await bot.run(context);
+    const adapter = new BotFrameworkAdapter({
+      appId: process.env.AZURE_AD_CLIENT_ID,
+      appPassword: process.env.AZURE_AD_CLIENT_SECRET
     });
-  });
 
-  server.listen(port, () => {
-    console.log(`[teams-bot] Teams bot listening on port ${port}`);
-  });
-})();
+    const bot = new GooseTeamsBot();
+
+    const port = process.env.PORT || 3978;
+
+    const restify = require('restify');
+    const server = restify.createServer();
+    server.post('/api/messages', (req, res) => {
+      adapter.processActivity(req, res, async (context) => {
+        await bot.run(context);
+      });
+    });
+
+    server.listen(port, () => {
+      console.log(`[teams-bot] Teams bot listening on port ${port}`);
+    });
+  })();
+}

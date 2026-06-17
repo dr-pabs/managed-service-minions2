@@ -12,7 +12,7 @@
 //   - If a bucket is empty, the call is blocked.
 
 use std::collections::HashMap;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 #[derive(Debug, Clone)]
 pub struct RateLimiterConfig {
@@ -115,6 +115,7 @@ impl RateLimiter {
     }
 
     /// Get remaining tokens for an agent type (for introspection/monitoring).
+    #[allow(dead_code)]
     pub fn remaining_tokens(&mut self, agent: &str) -> f64 {
         self.buckets
             .get_mut(agent)

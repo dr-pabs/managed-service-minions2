@@ -18,8 +18,10 @@ jobs:
       - name: Lint Markdown
         uses: DavidAnson/markdownlint-cli2-action@v19
         with:
-          globs: '**/*.md'
-          continue-on-error: false
+          globs: |
+            **/*.md
+            !.codewhale/**
+            !node_modules/**
       - name: Lint YAML
         run: |
           pip install yamllint
@@ -28,6 +30,31 @@ jobs:
         run: |
           sudo apt-get install -y shellcheck
           shellcheck hooks/*.sh tests/runner.sh
+
+  node:
+    name: Node (bots)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: |
+            bots/slack-bot/package-lock.json
+            bots/teams-bot/package-lock.json
+      - name: Install Slack bot deps
+        run: npm ci
+        working-directory: bots/slack-bot
+      - name: Test Slack bot
+        run: npm test
+        working-directory: bots/slack-bot
+      - name: Install Teams bot deps
+        run: npm ci
+        working-directory: bots/teams-bot
+      - name: Test Teams bot
+        run: npm test
+        working-directory: bots/teams-bot
 
   rust:
     name: Rust (toolshed)
@@ -140,14 +167,16 @@ jobs:
 
   gate:
     name: All Gates Passed
-    needs: [lint, rust, identity, integration, terraform, dashboard-api]
+    needs: [lint, node, rust, identity, integration, terraform, dashboard-api]
     runs-on: ubuntu-latest
     if: always()
     steps:
       - name: Check gates
         run: |
-          echo "Gates: lint=${{ needs.lint.result }}, rust=${{ needs.rust.result }}, identity=${{ needs.identity.result }}, integration=${{ needs.integration.result }}, terraform=${{ needs.terraform.result }}, dashboard-api=${{ needs.dashboard-api.result }}"
+          echo "lint=${{ needs.lint.result }} node=${{ needs.node.result }} rust=${{ needs.rust.result }}"
+          echo "identity=${{ needs.identity.result }} integration=${{ needs.integration.result }} terraform=${{ needs.terraform.result }} dashboard-api=${{ needs.dashboard-api.result }}"
           if [ "${{ needs.lint.result }}" != "success" ] || \
+             [ "${{ needs.node.result }}" != "success" ] || \
              [ "${{ needs.rust.result }}" != "success" ] || \
              [ "${{ needs.identity.result }}" != "success" ] || \
              [ "${{ needs.integration.result }}" != "success" ] || \

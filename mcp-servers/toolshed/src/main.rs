@@ -14,6 +14,7 @@ use rmcp::transport::stdio;
 mod allowlist;
 mod logger;
 mod proxy;
+mod rate_limiter;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

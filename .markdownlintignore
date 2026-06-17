@@ -1,2 +1,2 @@
-node_modules/
-.codewhale/
+node_modules/**
+.codewhale/**

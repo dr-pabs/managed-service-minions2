@@ -6,10 +6,16 @@
   "main": "src/bot.js",
   "scripts": {
     "start": "node src/bot.js",
-    "test": "echo \"Tests: manual (requires Teams environment + Azure AD app registration)\""
+    "test": "jest --testPathPattern='src/bot\\.test\\.js' --forceExit"
   },
   "dependencies": {
     "botbuilder": "^4.22.0",
     "ws": "^8.16.0"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0"
+  },
+  "jest": {
+    "testEnvironment": "node"
   }
 }
