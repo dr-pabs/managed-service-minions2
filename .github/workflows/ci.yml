@@ -160,7 +160,7 @@ jobs:
           cache-dependency-path: dashboard/package-lock.json
       - name: Install dependencies
         working-directory: dashboard
-        run: npm ci --ignore-scripts
+        run: npm install --legacy-peer-deps --ignore-scripts
       - name: Run API tests
         working-directory: dashboard
         run: LA_MOCK=true npm run test:api

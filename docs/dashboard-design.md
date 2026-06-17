@@ -3,7 +3,7 @@
 > **Date:** 2026-06-06\
 > **Status:** Implemented (2026-06-17)\
 > **Complements:** ADR-018 (Observability), `logical-architecture.md` §15
-
+>
 > **Build discoveries (2026-06-17):** Dashboard implemented as a React SPA (port 3000) backed by an Express API server (port 3001). Data sources: (1) **Log Analytics Workspace** via `@azure/monitor-query` KQL — the toolshed writes `AuditEntry` JSON lines to stdout and Container Apps collects them into Log Analytics (no direct Table Storage writes from toolshed); (2) **goose serve WebSocket** (port 3284) proxied as Server-Sent Events for real-time session streaming. Set `LA_MOCK=true` to return hardcoded mock data without Azure credentials. Prompt version registry deferred to Phase 2.
 
 ______________________________________________________________________
