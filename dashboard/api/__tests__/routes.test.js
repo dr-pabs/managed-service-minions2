@@ -157,7 +157,7 @@ describe('GET /api/config', () => {
     expect(typeof res.body.env).toBe('object');
   });
 
-  it('allowlists cover all 5 agent types', async () => {
+  it('allowlists cover all 7 agent types', async () => {
     const res = await request(app).get('/api/config');
     const agents = res.body.allowlists.map(a => a.agent);
     expect(agents).toContain('code-reviewer');
@@ -165,6 +165,8 @@ describe('GET /api/config', () => {
     expect(agents).toContain('pr-crafter');
     expect(agents).toContain('ticket-analyst');
     expect(agents).toContain('security-auditor');
+    expect(agents).toContain('code-writer');
+    expect(agents).toContain('test-writer');
   });
 
   it('each allowlist entry has agent and non-empty tools array', async () => {

@@ -561,7 +561,7 @@ CREATE TABLE sessions (
 CREATE TABLE minion_runs (
     id              TEXT PRIMARY KEY,    -- correlation_id.sub_id
     session_id      TEXT NOT NULL REFERENCES sessions(id),
-    minion_type     TEXT NOT NULL,       -- code-explorer | code-reviewer | pr-crafter | ticket-analyst | security-auditor
+    minion_type     TEXT NOT NULL,       -- code-explorer | code-reviewer | pr-crafter | ticket-analyst | security-auditor | code-writer | test-writer
     parent_run_id   TEXT,                -- for DAG dependency tracking
     instructions    TEXT NOT NULL,
     status          TEXT DEFAULT 'pending', -- pending | running | completed | failed | timed_out
@@ -813,7 +813,9 @@ github.com/dr-pabs/managed-service-minions2
 │   │       ├── code-reviewer.md
 │   │       ├── pr-crafter.md
 │   │       ├── ticket-analyst.md
-│   │       └── security-auditor.md
+│   │       ├── security-auditor.md
+│   │       ├── code-writer.md
+│   │       └── test-writer.md
 │   ├── mcp-toolshed/
 │   ├── slack-bot/
 │   ├── teams-bot/
@@ -1177,6 +1179,8 @@ governance:
     pr-crafter: 900
     ticket-analyst: 300
     security-auditor: 600
+    code-writer: 900
+    test-writer: 600
 ```
 
 ______________________________________________________________________

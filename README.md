@@ -33,7 +33,8 @@ User (Slack / Teams / Goose session)
 │                                 │
 │  code-reviewer  code-explorer   │
 │  pr-crafter     ticket-analyst  │
-│  security-auditor               │
+│  security-auditor code-writer   │
+│  test-writer                    │
 └──────────────┬──────────────────┘
                │ extensions: ["toolshed"]
                ▼
@@ -106,7 +107,9 @@ managed-service-minions2/
 │       ├── code-explorer.md     # Code search agent
 │       ├── pr-crafter.md        # PR creation agent
 │       ├── ticket-analyst.md    # Ticket lookup agent
-│       └── security-auditor.md  # Security scanning agent
+│       ├── security-auditor.md  # Security scanning agent
+│       ├── code-writer.md       # Implementation + unit test agent
+│       └── test-writer.md       # Integration and E2E test agent
 ├── commands/
 │   ├── review-pr.yaml           # /review-pr slash command
 │   ├── triage-ticket.yaml       # /triage-ticket slash command
@@ -122,7 +125,7 @@ managed-service-minions2/
 │       ├── Cargo.toml
 │       └── src/
 │           ├── main.rs          # Bootstrap
-│           ├── allowlist.rs     # Per-agent allowlist enforcement (6 tests)
+│           ├── allowlist.rs     # Per-agent allowlist enforcement (10 tests)
 │           ├── proxy.rs         # Interception: allowlist → log → forward
 │           └── logger.rs        # JSON audit logger
 ├── bots/
@@ -134,7 +137,9 @@ managed-service-minions2/
 │   │   └── walking-skeleton.md  # End-to-end integration test
 │   └── roles/
 │       ├── orchestrator-identity.md
-│       └── code-reviewer-identity.md
+│       ├── code-reviewer-identity.md
+│       ├── code-writer-identity.md
+│       └── test-writer-identity.md
 ├── docs/
 │   ├── low-level-design.md      # Technical architecture reference
 │   └── execplan/

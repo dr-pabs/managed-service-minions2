@@ -28,7 +28,7 @@ Use Azure Service Bus, Standard tier (~$10/month).
 ### Queue Topology
 
 - **Topic:** `minion-tasks` — all minion tasks are published here.
-- **Subscriptions:** One per minion type (`code-explorer`, `code-reviewer`, `pr-crafter`, `ticket-analyst`, `security-auditor`). Each subscription filters on `minion_type` property.
+- **Subscriptions:** One per minion type (`code-explorer`, `code-reviewer`, `pr-crafter`, `ticket-analyst`, `security-auditor`, `code-writer`, `test-writer`). Each subscription filters on `minion_type` property.
 - **Sessions enabled** — Session ID = correlation ID. Ensures messages for the same orchestration arrive in order and are processed by the same consumer.
 - **Dead-letter** — Failed tasks (exhausted retries) move to DLQ for manual inspection and replay.
 
