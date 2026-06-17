@@ -69,14 +69,19 @@ output "ai_foundry_key" {
 }
 
 output "log_analytics_workspace_id" {
-  description = "Log Analytics workspace ID"
-  value       = azurerm_log_analytics_workspace.main.id
+  description = "Log Analytics workspace GUID (used for KQL queries via the SDK)"
+  value       = azurerm_log_analytics_workspace.main.workspace_id
 }
 
 output "log_analytics_workspace_key" {
   description = "Log Analytics workspace key (sensitive)"
   value       = azurerm_log_analytics_workspace.main.primary_shared_key
   sensitive   = true
+}
+
+output "dashboard_url" {
+  description = "Dashboard container app URL"
+  value       = "https://${azurerm_container_app.dashboard.latest_revision_fqdn}"
 }
 
 output "acr_pull_identity_client_id" {

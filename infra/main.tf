@@ -95,6 +95,13 @@ resource "azurerm_role_assignment" "kv_secrets_user" {
   principal_id         = azurerm_user_assigned_identity.acr_pull.principal_id
 }
 
+# Grant the managed identity permission to query Log Analytics (needed by dashboard)
+resource "azurerm_role_assignment" "la_reader" {
+  scope                = azurerm_log_analytics_workspace.main.id
+  role_definition_name = "Log Analytics Reader"
+  principal_id         = azurerm_user_assigned_identity.acr_pull.principal_id
+}
+
 # ── Key Vault Secrets ────────────────────────────────────────────────────────
 # Populated from sensitive variables supplied at terraform apply time.
 # Never commit actual secret values to variables.tf or .tfvars files.
@@ -367,6 +374,77 @@ resource "azurerm_container_app" "teams_bot" {
     allow_insecure_connections = false
     external_enabled           = true
     target_port                = 3000
+    transport                  = "http"
+
+    traffic_weight {
+      percentage      = 100
+      latest_revision = true
+    }
+  }
+
+  registry {
+    server   = azurerm_container_registry.main.login_server
+    identity = azurerm_user_assigned_identity.acr_pull.id
+  }
+}
+
+# ── Container App: Dashboard (React SPA + Express API) ──────────────────────
+
+resource "azurerm_container_app" "dashboard" {
+  name                         = "ca-dashboard-${local.env}"
+  resource_group_name          = azurerm_resource_group.main.name
+  container_app_environment_id = azurerm_container_app_environment.main.id
+  revision_mode                = "Single"
+  tags                         = var.tags
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.acr_pull.id]
+  }
+
+  secret {
+    name                = "goose-server-secret-key"
+    key_vault_secret_id = azurerm_key_vault_secret.goose_server_key.id
+    identity            = azurerm_user_assigned_identity.acr_pull.id
+  }
+
+  template {
+    min_replicas = 1
+    max_replicas = 1
+
+    container {
+      name   = "dashboard"
+      image  = "${azurerm_container_registry.main.login_server}/dashboard:${var.image_tag}"
+      cpu    = 0.5
+      memory = "1Gi"
+
+      env {
+        name  = "LOG_ANALYTICS_WORKSPACE_ID"
+        value = azurerm_log_analytics_workspace.main.workspace_id
+      }
+      env {
+        name  = "GOOSE_WS_URL"
+        value = "wss://${azurerm_container_app.orchestrator.latest_revision_fqdn}"
+      }
+      env {
+        name        = "GOOSE_SERVER__SECRET_KEY"
+        secret_name = "goose-server-secret-key"
+      }
+      env {
+        name  = "API_PORT"
+        value = "3001"
+      }
+      env {
+        name  = "NODE_ENV"
+        value = "production"
+      }
+    }
+  }
+
+  ingress {
+    allow_insecure_connections = false
+    external_enabled           = true
+    target_port                = 3001
     transport                  = "http"
 
     traffic_weight {

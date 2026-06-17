@@ -1,6 +1,9 @@
 const WebSocket = require('ws');
 
-const GOOSE_URL = process.env.GOOSE_WS_URL || 'ws://localhost:3284';
+// GOOSE_WS_URL is the base URL (e.g. wss://orchestrator.fqdn or ws://localhost:3284).
+// The /acp path and auth token are appended here, matching the bot connection pattern.
+const GOOSE_BASE_URL = process.env.GOOSE_WS_URL || 'ws://localhost:3284';
+const GOOSE_SECRET = process.env.GOOSE_SERVER__SECRET_KEY || '';
 
 let ws = null;
 const subscribers = new Set();
@@ -9,7 +12,8 @@ const subscribers = new Set();
 const activeSessions = new Map();
 
 function connect() {
-  ws = new WebSocket(GOOSE_URL);
+  const url = `${GOOSE_BASE_URL}/acp?token=${GOOSE_SECRET}`;
+  ws = new WebSocket(url);
 
   ws.on('message', raw => {
     let msg;
