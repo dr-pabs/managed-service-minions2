@@ -14,9 +14,11 @@ Classify the user's message into one of these intents:
 |---|---|---|
 | `code_review` | Single PR review | "Review PR 342" |
 | `ticket_lookup` | Single ticket status | "What's the status of INC00421?" |
-| `ticket_fix_pr` | Complex: ticket → explore → implement → review | "Fix INC00421 and create a PR" |
+| `ticket_fix_pr` | Complex: ticket → explore → write → test → PR → review | "Fix INC00421 and create a PR" |
 | `security_audit` | Single security scan | "Is this SQL query vulnerable?" |
 | `code_explore` | Single code search | "Find the source of the login timeout" |
+| `code_write` | Write implementation code and unit tests for a ticket | "Implement the fix for INC00421" |
+| `test_write` | Write integration and E2E tests for implemented changes | "Add integration tests for the auth flow" |
 | `daily_review` | Complex: review all open PRs | (triggered by cron) |
 | `unknown` | Doesn't match any intent | "Hello" |
 
@@ -44,6 +46,8 @@ delegate({
 | `ticket_lookup` | `ticket-analyst` | `ticket_id` (string) | 10 | 5 min |
 | `security_audit` | `security-auditor` | `target` (string) | 20 | 10 min |
 | `code_explore` | `code-explorer` | `query` (string) | 10 | 5 min |
+| `code_write` | `code-writer` | `ticket_id` (string), `repo` (string) | 30 | 15 min |
+| `test_write` | `test-writer` | `ticket_id` (string), `repo` (string) | 25 | 10 min |
 
 ### Multi-Minion DAG (Phase 2)
 
@@ -52,8 +56,9 @@ Complex intents decompose into directed acyclic graphs of minions. Each edge is 
 **`ticket_fix_pr` DAG:**
 
 ```
-ticket-analyst ──▶ code-explorer ──▶ pr-crafter ──▶ code-reviewer
-    (fetch ticket)   (find affected)   (implement fix)   (review PR)
+ticket-analyst ──▶ code-explorer ──▶ code-writer ──▶ test-writer ──▶ pr-crafter ──▶ code-reviewer
+  (fetch ticket)   (find affected)   (implement +     (integration    (branch +       (review PR)
+                                      unit tests)      & E2E tests)    commit + PR)
 ```
 
 **`daily_review` DAG (parallel fan-out):**
@@ -87,16 +92,34 @@ const exploreTask = delegate({
 });
 const exploreResult = load({ source: exploreTask.taskId });
 
-// Stage 3: Implement fix
+// Stage 3: Write implementation code and unit tests
+const writeTask = delegate({
+  source: "code-writer",
+  parameters: { ticket_id: "INC00421", repo: "org/repo" },
+  instructions: `Ticket: ${ticketResult.title}\nAffected files: ${exploreResult.findings.map(f => f.file).join(", ")}`,
+  extensions: ["toolshed"], max_turns: 30, async: true
+});
+const writeResult = load({ source: writeTask.taskId });
+
+// Stage 4: Write integration and E2E tests
+const testTask = delegate({
+  source: "test-writer",
+  parameters: { ticket_id: "INC00421", repo: "org/repo" },
+  instructions: `Files changed: ${writeResult.files_changed.join(", ")}`,
+  extensions: ["toolshed"], max_turns: 25, async: true
+});
+const testResult = load({ source: testTask.taskId });
+
+// Stage 5: Commit and open PR
 const prTask = delegate({
   source: "pr-crafter",
   parameters: { ticket_id: "INC00421", repo: "org/repo" },
-  instructions: `Affected files: ${exploreResult.findings.map(f => f.file).join(", ")}`,
+  instructions: `Files to commit: ${[...writeResult.files_changed, ...testResult.test_files].join(", ")}`,
   extensions: ["toolshed"], max_turns: 30, async: true
 });
 const prResult = load({ source: prTask.taskId });
 
-// Stage 4: Review the PR
+// Stage 6: Review the PR
 const reviewTask = delegate({
   source: "code-reviewer",
   parameters: { pr_number: extractPrNumber(prResult.pr_url), repo: "org/repo" },
@@ -110,7 +133,9 @@ return {
   stages: [
     { agent: "ticket-analyst", result: ticketResult },
     { agent: "code-explorer", result: exploreResult },
-    { agent: "pr-crafter", result: prResult },
+    { agent: "code-writer",   result: writeResult },
+    { agent: "test-writer",   result: testResult },
+    { agent: "pr-crafter",    result: prResult },
     { agent: "code-reviewer", result: reviewResult }
   ]
 };
@@ -184,6 +209,8 @@ The orchestrator validates a **minimal required-field and type-check** on every 
 | `pr-crafter` | `ticket_id`, `status` (if `status` is `"failed"`, `error` is also required) | `status` ∈ {created, failed} |
 | `ticket-analyst` | `ticket_id`, `system`, `title`, `status` | `system` ∈ {ado, jira}, `status` ∈ {open, in_progress, resolved, closed, blocked, reopened} |
 | `security-auditor` | `target`, `summary`, `findings`, `safe`, `total_findings` | `safe` (boolean), `total_findings` (integer) |
+| `code-writer` | `ticket_id`, `status`, `files_changed` | `status` ∈ {completed, partial, failed}, `files_changed` (array of strings) |
+| `test-writer` | `ticket_id`, `status`, `test_files` | `status` ∈ {completed, partial, failed}, `test_files` (array of strings) |
 
 > **Agent contract:** Each agent's complete output schema is defined in its agent `.md` file. See `.agents/agents/<name>.md` for all fields, their types, and optional/required status.
 
