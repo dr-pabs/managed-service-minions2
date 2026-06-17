@@ -3,7 +3,7 @@
 > **Date:** 2026-06-15\
 > **Status:** Updated for Phase 1 build discoveries\
 > **Complements:** [physical-architecture.md](./physical-architecture.md), [logical-architecture.md](./logical-architecture.md)
-
+>
 > **Build discoveries (2026-06-15):** Goose 1.37.0 is deployed as `goose serve` (ACP server, port 3284), not as a library. The orchestration framework is a goose *plugin* installed via `goose plugin install`. The toolshed is a standalone Rust MCP server. Bot adapters are thin ACP WebSocket clients, not standalone webhook services. Agent definitions live in `.agents/agents/` (not `agents/`). Skills live in `.agents/skills/`. Scheduling uses `goose schedule` CLI, not `platform__manage_schedule`.
 
 ______________________________________________________________________

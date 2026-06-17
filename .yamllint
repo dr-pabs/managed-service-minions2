@@ -1,0 +1,13 @@
+---
+extends: default
+ignore: |
+  node_modules/
+  .worktrees/
+rules:
+  line-length:
+    max: 200
+    level: warning
+  document-start: disable
+  truthy:
+    allowed-values: ['true', 'false', 'on', 'off']
+    check-keys: false

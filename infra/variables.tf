@@ -147,12 +147,6 @@ variable "model_deployments" {
 
 # ── Container Registry ──────────────────────────────────────────────────────
 
-variable "acr_name" {
-  description = "Azure Container Registry name"
-  type        = string
-  default     = "stgoosefwdev"
-}
-
 variable "image_tag" {
   description = "Docker image tag for container apps"
   type        = string
@@ -184,4 +178,48 @@ variable "tags" {
     project    = "goose-agent-framework"
     managed_by = "terraform"
   }
+}
+
+# ── Secrets (sensitive — pass via TF_VAR_* env vars or Azure Key Vault data sources)
+
+variable "goose_server_secret_key" {
+  description = "Secret key for goose serve JWT signing"
+  type        = string
+  sensitive   = true
+}
+
+variable "slack_bot_token" {
+  description = "Slack bot token (xoxb-...)"
+  type        = string
+  sensitive   = true
+}
+
+variable "slack_signing_secret" {
+  description = "Slack signing secret"
+  type        = string
+  sensitive   = true
+}
+
+variable "slack_app_token" {
+  description = "Slack app-level token (xapp-...) for Socket Mode"
+  type        = string
+  sensitive   = true
+}
+
+variable "teams_client_id" {
+  description = "Azure AD app registration client ID for Teams bot"
+  type        = string
+  sensitive   = true
+}
+
+variable "teams_tenant_id" {
+  description = "Azure AD tenant ID for Teams bot"
+  type        = string
+  sensitive   = true
+}
+
+variable "teams_client_secret" {
+  description = "Azure AD client secret for Teams bot"
+  type        = string
+  sensitive   = true
 }

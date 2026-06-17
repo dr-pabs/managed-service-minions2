@@ -46,6 +46,108 @@ resource "azurerm_container_app_environment" "main" {
   }
 }
 
+# ── Container Registry ──────────────────────────────────────────────────────
+
+resource "azurerm_container_registry" "main" {
+  # ACR names must be globally unique, alphanumeric only, 5-50 chars
+  name                = replace("acr${var.naming_prefix}${local.env}", "-", "")
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+  sku                 = "Basic"
+  admin_enabled       = false
+  tags                = var.tags
+}
+
+# ── User-Assigned Managed Identity ─────────────────────────────────────────
+
+resource "azurerm_user_assigned_identity" "acr_pull" {
+  name                = "id-acr-pull-${var.naming_prefix}-${local.env}"
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+  tags                = var.tags
+}
+
+# Grant the managed identity permission to pull images from ACR
+resource "azurerm_role_assignment" "acr_pull" {
+  scope                = azurerm_container_registry.main.id
+  role_definition_name = "AcrPull"
+  principal_id         = azurerm_user_assigned_identity.acr_pull.principal_id
+}
+
+# ── Key Vault ───────────────────────────────────────────────────────────────
+
+resource "azurerm_key_vault" "main" {
+  name                       = "kv-${var.naming_prefix}-${local.env}"
+  resource_group_name        = azurerm_resource_group.main.name
+  location                   = azurerm_resource_group.main.location
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+  tags                       = var.tags
+}
+
+data "azurerm_client_config" "current" {}
+
+# Grant the managed identity permission to read secrets from Key Vault
+resource "azurerm_role_assignment" "kv_secrets_user" {
+  scope                = azurerm_key_vault.main.id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id         = azurerm_user_assigned_identity.acr_pull.principal_id
+}
+
+# ── Key Vault Secrets ────────────────────────────────────────────────────────
+# Populated from sensitive variables supplied at terraform apply time.
+# Never commit actual secret values to variables.tf or .tfvars files.
+
+resource "azurerm_key_vault_secret" "goose_server_key" {
+  name         = "goose-server-secret-key"
+  value        = var.goose_server_secret_key
+  key_vault_id = azurerm_key_vault.main.id
+  depends_on   = [azurerm_role_assignment.kv_secrets_user]
+}
+
+resource "azurerm_key_vault_secret" "slack_bot_token" {
+  name         = "slack-bot-token"
+  value        = var.slack_bot_token
+  key_vault_id = azurerm_key_vault.main.id
+  depends_on   = [azurerm_role_assignment.kv_secrets_user]
+}
+
+resource "azurerm_key_vault_secret" "slack_signing_secret" {
+  name         = "slack-signing-secret"
+  value        = var.slack_signing_secret
+  key_vault_id = azurerm_key_vault.main.id
+  depends_on   = [azurerm_role_assignment.kv_secrets_user]
+}
+
+resource "azurerm_key_vault_secret" "slack_app_token" {
+  name         = "slack-app-token"
+  value        = var.slack_app_token
+  key_vault_id = azurerm_key_vault.main.id
+  depends_on   = [azurerm_role_assignment.kv_secrets_user]
+}
+
+resource "azurerm_key_vault_secret" "teams_client_id" {
+  name         = "teams-azure-ad-client-id"
+  value        = var.teams_client_id
+  key_vault_id = azurerm_key_vault.main.id
+  depends_on   = [azurerm_role_assignment.kv_secrets_user]
+}
+
+resource "azurerm_key_vault_secret" "teams_tenant_id" {
+  name         = "teams-azure-ad-tenant-id"
+  value        = var.teams_tenant_id
+  key_vault_id = azurerm_key_vault.main.id
+  depends_on   = [azurerm_role_assignment.kv_secrets_user]
+}
+
+resource "azurerm_key_vault_secret" "teams_client_secret" {
+  name         = "teams-azure-ad-client-secret"
+  value        = var.teams_client_secret
+  key_vault_id = azurerm_key_vault.main.id
+  depends_on   = [azurerm_role_assignment.kv_secrets_user]
+}
+
 # ── Container App: Orchestrator (Goose Serve) ───────────────────────────────
 
 resource "azurerm_container_app" "orchestrator" {
@@ -55,10 +157,24 @@ resource "azurerm_container_app" "orchestrator" {
   revision_mode                = "Single"
   tags                         = var.tags
 
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.acr_pull.id]
+  }
+
+  secret {
+    name                = "goose-server-secret-key"
+    key_vault_secret_id = azurerm_key_vault_secret.goose_server_key.id
+    identity            = azurerm_user_assigned_identity.acr_pull.id
+  }
+
   template {
+    min_replicas = local.scale_config[local.env].min
+    max_replicas = local.scale_config[local.env].max
+
     container {
       name   = "goose-serve"
-      image  = "${var.acr_name}.azurecr.io/goose-serve:${var.image_tag}"
+      image  = "${azurerm_container_registry.main.login_server}/goose-serve:${var.image_tag}"
       cpu    = var.orchestrator_cpu
       memory = var.orchestrator_memory
 
@@ -94,7 +210,7 @@ resource "azurerm_container_app" "orchestrator" {
   }
 
   registry {
-    server   = "${var.acr_name}.azurecr.io"
+    server   = azurerm_container_registry.main.login_server
     identity = azurerm_user_assigned_identity.acr_pull.id
   }
 }
@@ -108,16 +224,42 @@ resource "azurerm_container_app" "slack_bot" {
   revision_mode                = "Single"
   tags                         = var.tags
 
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.acr_pull.id]
+  }
+
+  secret {
+    name                = "goose-server-secret-key"
+    key_vault_secret_id = azurerm_key_vault_secret.goose_server_key.id
+    identity            = azurerm_user_assigned_identity.acr_pull.id
+  }
+  secret {
+    name                = "slack-bot-token"
+    key_vault_secret_id = azurerm_key_vault_secret.slack_bot_token.id
+    identity            = azurerm_user_assigned_identity.acr_pull.id
+  }
+  secret {
+    name                = "slack-signing-secret"
+    key_vault_secret_id = azurerm_key_vault_secret.slack_signing_secret.id
+    identity            = azurerm_user_assigned_identity.acr_pull.id
+  }
+  secret {
+    name                = "slack-app-token"
+    key_vault_secret_id = azurerm_key_vault_secret.slack_app_token.id
+    identity            = azurerm_user_assigned_identity.acr_pull.id
+  }
+
   template {
     container {
       name   = "slack-bot"
-      image  = "${var.acr_name}.azurecr.io/slack-bot:${var.image_tag}"
+      image  = "${azurerm_container_registry.main.login_server}/slack-bot:${var.image_tag}"
       cpu    = var.bot_cpu
       memory = var.bot_memory
 
       env {
         name  = "GOOSE_SERVE_URL"
-        value = "https://${azurerm_container_app.orchestrator.latest_revision_fqdn}:3284"
+        value = "https://${azurerm_container_app.orchestrator.latest_revision_fqdn}"
       }
       env {
         name        = "GOOSE_SERVER__SECRET_KEY"
@@ -131,6 +273,10 @@ resource "azurerm_container_app" "slack_bot" {
         name        = "SLACK_SIGNING_SECRET"
         secret_name = "slack-signing-secret"
       }
+      env {
+        name        = "SLACK_APP_TOKEN"
+        secret_name = "slack-app-token"
+      }
     }
   }
 
@@ -147,7 +293,7 @@ resource "azurerm_container_app" "slack_bot" {
   }
 
   registry {
-    server   = "${var.acr_name}.azurecr.io"
+    server   = azurerm_container_registry.main.login_server
     identity = azurerm_user_assigned_identity.acr_pull.id
   }
 }
@@ -161,16 +307,42 @@ resource "azurerm_container_app" "teams_bot" {
   revision_mode                = "Single"
   tags                         = var.tags
 
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.acr_pull.id]
+  }
+
+  secret {
+    name                = "goose-server-secret-key"
+    key_vault_secret_id = azurerm_key_vault_secret.goose_server_key.id
+    identity            = azurerm_user_assigned_identity.acr_pull.id
+  }
+  secret {
+    name                = "teams-azure-ad-client-id"
+    key_vault_secret_id = azurerm_key_vault_secret.teams_client_id.id
+    identity            = azurerm_user_assigned_identity.acr_pull.id
+  }
+  secret {
+    name                = "teams-azure-ad-tenant-id"
+    key_vault_secret_id = azurerm_key_vault_secret.teams_tenant_id.id
+    identity            = azurerm_user_assigned_identity.acr_pull.id
+  }
+  secret {
+    name                = "teams-azure-ad-client-secret"
+    key_vault_secret_id = azurerm_key_vault_secret.teams_client_secret.id
+    identity            = azurerm_user_assigned_identity.acr_pull.id
+  }
+
   template {
     container {
       name   = "teams-bot"
-      image  = "${var.acr_name}.azurecr.io/teams-bot:${var.image_tag}"
+      image  = "${azurerm_container_registry.main.login_server}/teams-bot:${var.image_tag}"
       cpu    = var.bot_cpu
       memory = var.bot_memory
 
       env {
         name  = "GOOSE_SERVE_URL"
-        value = "https://${azurerm_container_app.orchestrator.latest_revision_fqdn}:3284"
+        value = "https://${azurerm_container_app.orchestrator.latest_revision_fqdn}"
       }
       env {
         name        = "GOOSE_SERVER__SECRET_KEY"
@@ -183,6 +355,10 @@ resource "azurerm_container_app" "teams_bot" {
       env {
         name        = "AZURE_AD_TENANT_ID"
         secret_name = "teams-azure-ad-tenant-id"
+      }
+      env {
+        name        = "AZURE_AD_CLIENT_SECRET"
+        secret_name = "teams-azure-ad-client-secret"
       }
     }
   }
@@ -200,7 +376,7 @@ resource "azurerm_container_app" "teams_bot" {
   }
 
   registry {
-    server   = "${var.acr_name}.azurecr.io"
+    server   = azurerm_container_registry.main.login_server
     identity = azurerm_user_assigned_identity.acr_pull.id
   }
 }
@@ -265,29 +441,6 @@ resource "azurerm_storage_container" "sqlite_backups" {
 resource "azurerm_storage_table" "audit_logs" {
   name                 = "auditlogs"
   storage_account_name = azurerm_storage_account.main.name
-}
-
-# ── Key Vault ───────────────────────────────────────────────────────────────
-
-resource "azurerm_key_vault" "main" {
-  name                       = "kv-${var.naming_prefix}-${local.env}"
-  resource_group_name        = azurerm_resource_group.main.name
-  location                   = azurerm_resource_group.main.location
-  tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "standard"
-  soft_delete_retention_days = 7
-  tags                       = var.tags
-}
-
-data "azurerm_client_config" "current" {}
-
-# ── User-Assigned Managed Identity for ACR pull ─────────────────────────────
-
-resource "azurerm_user_assigned_identity" "acr_pull" {
-  name                = "id-acr-pull-${var.naming_prefix}-${local.env}"
-  resource_group_name = azurerm_resource_group.main.name
-  location            = azurerm_resource_group.main.location
-  tags                = var.tags
 }
 
 # ── AI Foundry Hub ──────────────────────────────────────────────────────────
