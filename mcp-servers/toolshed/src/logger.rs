@@ -93,3 +93,103 @@ impl AuditEntry {
 fn iso_now() -> String {
     Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Millis, true)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::time::Duration;
+
+    #[test]
+    fn new_sets_defaults() {
+        let e = AuditEntry::new("corr_1".into(), "code-reviewer".into(), "github.get_pr_diff".into());
+        assert_eq!(e.correlation_id, "corr_1");
+        assert_eq!(e.agent, "code-reviewer");
+        assert_eq!(e.tool, "github.get_pr_diff");
+        assert!(e.params.is_none());
+        assert!(e.duration_ms.is_none());
+        assert!(e.output_size_bytes.is_none());
+        assert!(e.reason.is_none());
+    }
+
+    #[test]
+    fn with_params_sets_value() {
+        let e = AuditEntry::new("c".into(), "a".into(), "t".into())
+            .with_params(serde_json::json!({"key": "val"}));
+        assert!(e.params.is_some());
+        assert_eq!(e.params.unwrap()["key"], "val");
+    }
+
+    #[test]
+    fn with_duration_converts_to_millis() {
+        let e = AuditEntry::new("c".into(), "a".into(), "t".into())
+            .with_duration(Duration::from_millis(250));
+        assert_eq!(e.duration_ms, Some(250));
+    }
+
+    #[test]
+    fn with_output_size_sets_bytes() {
+        let e = AuditEntry::new("c".into(), "a".into(), "t".into())
+            .with_output_size(512);
+        assert_eq!(e.output_size_bytes, Some(512));
+    }
+
+    #[test]
+    fn with_reason_sets_string() {
+        let e = AuditEntry::new("c".into(), "a".into(), "t".into())
+            .with_reason("allowlist_denied");
+        assert_eq!(e.reason, Some("allowlist_denied".into()));
+    }
+
+    #[test]
+    fn with_result_blocked_round_trips_in_json() {
+        let e = AuditEntry::new("c".into(), "a".into(), "t".into())
+            .with_result(AuditResult::Blocked);
+        let json = serde_json::to_string(&e).unwrap();
+        assert!(json.contains("\"result\":\"blocked\""), "got: {json}");
+    }
+
+    #[test]
+    fn audit_result_success_serializes() {
+        assert_eq!(serde_json::to_string(&AuditResult::Success).unwrap(), "\"success\"");
+    }
+
+    #[test]
+    fn audit_result_failure_serializes() {
+        assert_eq!(serde_json::to_string(&AuditResult::Failure).unwrap(), "\"failure\"");
+    }
+
+    #[test]
+    fn audit_result_blocked_serializes() {
+        assert_eq!(serde_json::to_string(&AuditResult::Blocked).unwrap(), "\"blocked\"");
+    }
+
+    #[test]
+    fn log_produces_parseable_json_with_correct_fields() {
+        let e = AuditEntry::new("corr_x".into(), "code-explorer".into(), "filesystem.read_file".into());
+        let json = serde_json::to_string(&e).unwrap();
+        let v: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(v["agent"], "code-explorer");
+        assert_eq!(v["tool"], "filesystem.read_file");
+        assert_eq!(v["correlation_id"], "corr_x");
+    }
+
+    #[test]
+    fn ts_field_is_valid_rfc3339() {
+        let e = AuditEntry::new("c".into(), "a".into(), "t".into());
+        assert!(
+            chrono::DateTime::parse_from_rfc3339(&e.ts).is_ok(),
+            "ts is not valid RFC 3339: {}",
+            e.ts
+        );
+    }
+
+    #[test]
+    fn optional_fields_are_omitted_when_none() {
+        let e = AuditEntry::new("c".into(), "a".into(), "t".into());
+        let json = serde_json::to_string(&e).unwrap();
+        assert!(!json.contains("params"), "params should be omitted: {json}");
+        assert!(!json.contains("duration_ms"), "duration_ms should be omitted: {json}");
+        assert!(!json.contains("output_size_bytes"), "output_size_bytes should be omitted: {json}");
+        assert!(!json.contains("reason"), "reason should be omitted: {json}");
+    }
+}

@@ -26,6 +26,50 @@ const sessions = new Map();
 // resolve the promise that sendToGoose is waiting on when the final chunk arrives.
 const streamingBuffers = new Map();
 
+// ── Incoming WebSocket message handler (extracted for testability) ──────────
+
+function processWsMessage(data) {
+  try {
+    const msg = JSON.parse(data.toString());
+
+    // JSON-RPC response to a sendACP call (has an id)
+    if (msg.id != null && pending.has(msg.id)) {
+      pending.get(msg.id)(msg);
+      pending.delete(msg.id);
+      return;
+    }
+
+    // Streaming chunk from the agent — accumulate until last=true
+    if (msg.method === 'notifications/AgentMessageChunk') {
+      const sid = msg.params?.sessionId;
+      const buf = streamingBuffers.get(sid);
+      if (!buf) return;
+
+      buf.chunks.push(msg.params?.chunk?.text || '');
+
+      if (msg.params?.last === true) {
+        streamingBuffers.delete(sid);
+        buf.resolve(buf.chunks.join(''));
+      }
+      return;
+    }
+
+    // Fallback completion signal
+    if (msg.method === 'notifications/AgentStatus' && msg.params?.status === 'done') {
+      const sid = msg.params?.sessionId;
+      const buf = streamingBuffers.get(sid);
+      if (buf) {
+        streamingBuffers.delete(sid);
+        buf.resolve(buf.chunks.join(''));
+      }
+    }
+  } catch (err) {
+    console.error('[slack-bot] ACP message parse error:', err.message);
+  }
+}
+
+// ── ACP Client ─────────────────────────────────────────────────────────────
+
 function connectACP() {
   return new Promise((resolve, reject) => {
     const url = `${GOOSE_URL.replace('http', 'ws')}/acp?token=${GOOSE_SECRET}`;
@@ -42,45 +86,7 @@ function connectACP() {
       }).then(resolve).catch(reject);
     });
 
-    ws.on('message', (data) => {
-      try {
-        const msg = JSON.parse(data.toString());
-
-        // JSON-RPC response to a sendACP call (has an id)
-        if (msg.id && pending.has(msg.id)) {
-          pending.get(msg.id)(msg);
-          pending.delete(msg.id);
-          return;
-        }
-
-        // Streaming chunk from the agent — accumulate until last=true
-        if (msg.method === 'notifications/AgentMessageChunk') {
-          const sid = msg.params?.sessionId;
-          const buf = streamingBuffers.get(sid);
-          if (!buf) return;
-
-          buf.chunks.push(msg.params?.chunk?.text || '');
-
-          if (msg.params?.last === true) {
-            streamingBuffers.delete(sid);
-            buf.resolve(buf.chunks.join(''));
-          }
-          return;
-        }
-
-        // Fallback completion signal
-        if (msg.method === 'notifications/AgentStatus' && msg.params?.status === 'done') {
-          const sid = msg.params?.sessionId;
-          const buf = streamingBuffers.get(sid);
-          if (buf) {
-            streamingBuffers.delete(sid);
-            buf.resolve(buf.chunks.join(''));
-          }
-        }
-      } catch (err) {
-        console.error('[slack-bot] ACP message parse error:', err.message);
-      }
-    });
+    ws.on('message', processWsMessage);
 
     ws.on('close', () => {
       console.log('[slack-bot] ACP disconnected. Reconnecting in 5s...');
@@ -149,49 +155,30 @@ async function sendToGoose(userMessage, userId) {
 
 // ── Slack Bot ──────────────────────────────────────────────────────────────
 
-const app = new App({
-  token: process.env.SLACK_BOT_TOKEN,
-  signingSecret: process.env.SLACK_SIGNING_SECRET,
-  socketMode: true,
-  appToken: process.env.SLACK_APP_TOKEN,
-});
+function makeSlackApp() {
+  const app = new App({
+    token: process.env.SLACK_BOT_TOKEN,
+    signingSecret: process.env.SLACK_SIGNING_SECRET,
+    socketMode: true,
+    appToken: process.env.SLACK_APP_TOKEN,
+  });
 
-// Channel allowlist — if set, only respond in these channels
-const ALLOWED_CHANNELS = (process.env.SLACK_ALLOWED_CHANNELS || '')
-  .split(',').map(c => c.trim()).filter(Boolean);
+  // Channel allowlist — if set, only respond in these channels
+  const ALLOWED_CHANNELS = (process.env.SLACK_ALLOWED_CHANNELS || '')
+    .split(',').map(c => c.trim()).filter(Boolean);
 
-app.event('message', async ({ event, say }) => {
-  // Ignore bot messages and non-text
-  if (event.subtype || !event.text) return;
+  app.event('message', async ({ event, say }) => {
+    // Ignore bot messages and non-text
+    if (event.subtype || !event.text) return;
 
-  // Channel allowlist
-  if (ALLOWED_CHANNELS.length > 0 && !ALLOWED_CHANNELS.includes(event.channel)) {
-    return;
-  }
+    // Channel allowlist
+    if (ALLOWED_CHANNELS.length > 0 && !ALLOWED_CHANNELS.includes(event.channel)) {
+      return;
+    }
 
-  // Add thinking reaction
-  try {
-    await app.client.reactions.add({
-      token: process.env.SLACK_BOT_TOKEN,
-      channel: event.channel,
-      name: 'thinking_face',
-      timestamp: event.ts
-    });
-  } catch (_) {}
-
-  try {
-    // Send to goose — keyed on the Slack user ID for session isolation
-    const response = await sendToGoose(event.text, event.user);
-
-    // Reply in thread
-    await say({
-      text: response || '(no response)',
-      thread_ts: event.ts
-    });
-
-    // Remove thinking reaction
+    // Add thinking reaction
     try {
-      await app.client.reactions.remove({
+      await app.client.reactions.add({
         token: process.env.SLACK_BOT_TOKEN,
         channel: event.channel,
         name: 'thinking_face',
@@ -199,20 +186,60 @@ app.event('message', async ({ event, say }) => {
       });
     } catch (_) {}
 
-  } catch (err) {
-    console.error('[slack-bot] Error processing message:', err.message);
-    await say({
-      text: `Sorry, I ran into an error: ${err.message}`,
-      thread_ts: event.ts
-    });
-  }
-});
+    try {
+      // Send to goose — keyed on the Slack user ID for session isolation
+      const response = await sendToGoose(event.text, event.user);
+
+      // Reply in thread
+      await say({
+        text: response || '(no response)',
+        thread_ts: event.ts
+      });
+
+      // Remove thinking reaction
+      try {
+        await app.client.reactions.remove({
+          token: process.env.SLACK_BOT_TOKEN,
+          channel: event.channel,
+          name: 'thinking_face',
+          timestamp: event.ts
+        });
+      } catch (_) {}
+
+    } catch (err) {
+      console.error('[slack-bot] Error processing message:', err.message);
+      await say({
+        text: `Sorry, I ran into an error: ${err.message}`,
+        thread_ts: event.ts
+      });
+    }
+  });
+
+  return app;
+}
+
+// ── Test Exports ───────────────────────────────────────────────────────────
+// Internal state and functions exported for unit tests only.
+module.exports = {
+  sessions,
+  streamingBuffers,
+  pending,
+  processWsMessage,
+  ensureSession,
+  sendToGoose,
+  /** Inject a mock WebSocket for testing. Resets msgId and pending state. */
+  _setWs(mockWs) { ws = mockWs; msgId = 0; pending.clear(); },
+  /** Reset all module-level state between tests. */
+  _reset() { sessions.clear(); streamingBuffers.clear(); pending.clear(); msgId = 0; ws = null; },
+};
 
 // ── Startup ────────────────────────────────────────────────────────────────
-
-(async () => {
-  console.log('[slack-bot] Starting...');
-  await connectACP();
-  await app.start();
-  console.log('[slack-bot] Slack bot is running');
-})();
+if (require.main === module) {
+  (async () => {
+    console.log('[slack-bot] Starting...');
+    await connectACP();
+    const app = makeSlackApp();
+    await app.start();
+    console.log('[slack-bot] Slack bot is running');
+  })();
+}

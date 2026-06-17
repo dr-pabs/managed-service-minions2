@@ -26,6 +26,48 @@ const sessions = new Map();
 // resolve the promise that sendToGoose is waiting on when the final chunk arrives.
 const streamingBuffers = new Map();
 
+// ── Incoming WebSocket message handler (extracted for testability) ──────────
+
+function processWsMessage(data) {
+  try {
+    const msg = JSON.parse(data.toString());
+
+    // JSON-RPC response to a sendACP call (has an id)
+    if (msg.id != null && pending.has(msg.id)) {
+      pending.get(msg.id)(msg);
+      pending.delete(msg.id);
+      return;
+    }
+
+    // Streaming chunk from the agent — accumulate until last=true
+    if (msg.method === 'notifications/AgentMessageChunk') {
+      const sid = msg.params?.sessionId;
+      const buf = streamingBuffers.get(sid);
+      if (!buf) return;
+
+      buf.chunks.push(msg.params?.chunk?.text || '');
+
+      if (msg.params?.last === true) {
+        streamingBuffers.delete(sid);
+        buf.resolve(buf.chunks.join(''));
+      }
+      return;
+    }
+
+    // Fallback completion signal
+    if (msg.method === 'notifications/AgentStatus' && msg.params?.status === 'done') {
+      const sid = msg.params?.sessionId;
+      const buf = streamingBuffers.get(sid);
+      if (buf) {
+        streamingBuffers.delete(sid);
+        buf.resolve(buf.chunks.join(''));
+      }
+    }
+  } catch (_) {}
+}
+
+// ── ACP Client ─────────────────────────────────────────────────────────────
+
 function connectACP() {
   return new Promise((resolve, reject) => {
     const url = `${GOOSE_URL.replace('http', 'ws')}/acp?token=${GOOSE_SECRET}`;
@@ -40,43 +82,7 @@ function connectACP() {
       }).then(resolve).catch(reject);
     });
 
-    ws.on('message', (data) => {
-      try {
-        const msg = JSON.parse(data.toString());
-
-        // JSON-RPC response to a sendACP call (has an id)
-        if (msg.id && pending.has(msg.id)) {
-          pending.get(msg.id)(msg);
-          pending.delete(msg.id);
-          return;
-        }
-
-        // Streaming chunk from the agent — accumulate until last=true
-        if (msg.method === 'notifications/AgentMessageChunk') {
-          const sid = msg.params?.sessionId;
-          const buf = streamingBuffers.get(sid);
-          if (!buf) return;
-
-          buf.chunks.push(msg.params?.chunk?.text || '');
-
-          if (msg.params?.last === true) {
-            streamingBuffers.delete(sid);
-            buf.resolve(buf.chunks.join(''));
-          }
-          return;
-        }
-
-        // Fallback completion signal
-        if (msg.method === 'notifications/AgentStatus' && msg.params?.status === 'done') {
-          const sid = msg.params?.sessionId;
-          const buf = streamingBuffers.get(sid);
-          if (buf) {
-            streamingBuffers.delete(sid);
-            buf.resolve(buf.chunks.join(''));
-          }
-        }
-      } catch (_) {}
-    });
+    ws.on('message', processWsMessage);
 
     ws.on('close', () => {
       console.log('[teams-bot] ACP disconnected. Reconnecting in 5s...');
@@ -187,31 +193,46 @@ class GooseTeamsBot extends ActivityHandler {
   }
 }
 
+// ── Test Exports ───────────────────────────────────────────────────────────
+// Internal state and functions exported for unit tests only.
+module.exports = {
+  sessions,
+  streamingBuffers,
+  pending,
+  processWsMessage,
+  ensureSession,
+  sendToGoose,
+  /** Inject a mock WebSocket for testing. Resets msgId and pending state. */
+  _setWs(mockWs) { ws = mockWs; msgId = 0; pending.clear(); },
+  /** Reset all module-level state between tests. */
+  _reset() { sessions.clear(); streamingBuffers.clear(); pending.clear(); msgId = 0; ws = null; },
+};
+
 // ── Startup ────────────────────────────────────────────────────────────────
+if (require.main === module) {
+  (async () => {
+    console.log('[teams-bot] Starting...');
+    await connectACP();
 
-(async () => {
-  console.log('[teams-bot] Starting...');
-  await connectACP();
-
-  const adapter = new BotFrameworkAdapter({
-    appId: process.env.AZURE_AD_CLIENT_ID,
-    appPassword: process.env.AZURE_AD_CLIENT_SECRET
-  });
-
-  const bot = new GooseTeamsBot();
-
-  // Listen on port 3978 (Teams default) or PORT env var
-  const port = process.env.PORT || 3978;
-
-  const restify = require('restify');
-  const server = restify.createServer();
-  server.post('/api/messages', (req, res) => {
-    adapter.processActivity(req, res, async (context) => {
-      await bot.run(context);
+    const adapter = new BotFrameworkAdapter({
+      appId: process.env.AZURE_AD_CLIENT_ID,
+      appPassword: process.env.AZURE_AD_CLIENT_SECRET
     });
-  });
 
-  server.listen(port, () => {
-    console.log(`[teams-bot] Teams bot listening on port ${port}`);
-  });
-})();
+    const bot = new GooseTeamsBot();
+
+    const port = process.env.PORT || 3978;
+
+    const restify = require('restify');
+    const server = restify.createServer();
+    server.post('/api/messages', (req, res) => {
+      adapter.processActivity(req, res, async (context) => {
+        await bot.run(context);
+      });
+    });
+
+    server.listen(port, () => {
+      console.log(`[teams-bot] Teams bot listening on port ${port}`);
+    });
+  })();
+}

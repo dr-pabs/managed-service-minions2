@@ -29,6 +29,38 @@ use crate::allowlist::AllowlistManager;
 use crate::logger::{AuditEntry, AuditResult};
 use crate::rate_limiter::RateLimiter;
 
+/// The outcome of an allowlist + rate-limit check for a single tool call.
+/// Extracted as a pure function so business logic can be unit-tested without
+/// requiring a live MCP server context.
+#[derive(Debug, PartialEq)]
+pub enum Decision {
+    Allowed { message: String },
+    BlockedByAllowlist { message: String },
+    BlockedByRateLimit { message: String },
+}
+
+pub fn decide(allowlist: &AllowlistManager, agent: &str, tool_name: &str, rate_ok: bool) -> Decision {
+    if !allowlist.is_allowed(agent, tool_name) {
+        return Decision::BlockedByAllowlist {
+            message: format!("Tool '{}' is not allowed for agent type '{}'", tool_name, agent),
+        };
+    }
+    if !rate_ok {
+        return Decision::BlockedByRateLimit {
+            message: format!(
+                "Rate limit exceeded for agent type '{}'. Retry after token bucket refills.",
+                agent
+            ),
+        };
+    }
+    Decision::Allowed {
+        message: format!(
+            "[toolshed] Tool '{}' allowed for agent '{}'. Proxying to GitHub MCP.",
+            tool_name, agent
+        ),
+    }
+}
+
 pub struct ToolshedServer {
     allowlist: AllowlistManager,
     rate_limiter: Mutex<RateLimiter>,
@@ -116,62 +148,49 @@ impl ServerHandler for ToolshedServer {
 
         let start = std::time::Instant::now();
 
-        // 2. Allowlist check
-        if !self.allowlist.is_allowed(&agent, &tool_name) {
-            let entry = AuditEntry::new(correlation_id, agent.clone(), tool_name.clone())
-                .with_params(serde_json::json!({}))
-                .with_result(AuditResult::Blocked)
-                .with_reason("allowlist_denied");
-            entry.log();
-
-            return Ok(CallToolResult::success(vec![Content::text(format!(
-                "Tool '{}' is not allowed for agent type '{}'",
-                tool_name, agent
-            ))]));
-        }
-
-        // 3. Rate-limit check
-        let rate_allowed = {
+        // 2+3. Allowlist + rate-limit via pure decide() function
+        let rate_ok = {
             let mut rl = self.rate_limiter.lock().await;
             rl.allow(&agent)
         };
-        if !rate_allowed {
-            let entry = AuditEntry::new(correlation_id, agent.clone(), tool_name.clone())
-                .with_params(serde_json::json!({}))
-                .with_result(AuditResult::Blocked)
-                .with_reason("rate_limited");
-            entry.log();
+        let decision = decide(&self.allowlist, &agent, &tool_name, rate_ok);
 
-            return Ok(CallToolResult::success(vec![Content::text(format!(
-                "Rate limit exceeded for agent type '{}'. Retry after token bucket refills.",
-                agent
-            ))]));
+        match decision {
+            Decision::BlockedByAllowlist { ref message } => {
+                AuditEntry::new(correlation_id, agent, tool_name)
+                    .with_params(serde_json::json!({}))
+                    .with_result(AuditResult::Blocked)
+                    .with_reason("allowlist_denied")
+                    .log();
+                return Ok(CallToolResult::success(vec![Content::text(message.clone())]));
+            }
+            Decision::BlockedByRateLimit { ref message } => {
+                AuditEntry::new(correlation_id, agent, tool_name)
+                    .with_params(serde_json::json!({}))
+                    .with_result(AuditResult::Blocked)
+                    .with_reason("rate_limited")
+                    .log();
+                return Ok(CallToolResult::success(vec![Content::text(message.clone())]));
+            }
+            Decision::Allowed { ref message } => {
+                // 4. Pre-call log
+                AuditEntry::new(correlation_id.clone(), agent.clone(), tool_name.clone())
+                    .with_params(serde_json::json!(args))
+                    .log();
+
+                let output = message.clone();
+
+                // 5+6. Post-call log with duration and output size
+                let duration = start.elapsed();
+                AuditEntry::new(correlation_id, agent, tool_name)
+                    .with_result(AuditResult::Success)
+                    .with_duration(duration)
+                    .with_output_size(output.len())
+                    .log();
+
+                Ok(CallToolResult::success(vec![Content::text(output)]))
+            }
         }
-
-        // 4. Pre-call log
-        let pre_entry = AuditEntry::new(correlation_id.clone(), agent.clone(), tool_name.clone())
-            .with_params(serde_json::json!(args));
-        pre_entry.log();
-
-        // 5. Proxy to GitHub MCP (pass-through in Phase 1)
-        // In Phase 1, goose routes tool calls to the GitHub MCP directly.
-        // The toolshed receives the intercepted tool call from the minion,
-        // verifies it, and returns approval. The actual MCP call is handled
-        // by goose's MCP routing layer.
-        let output = format!(
-            "[toolshed] Tool '{}' allowed for agent '{}'. Proxying to GitHub MCP.",
-            tool_name, agent
-        );
-
-        // 6. Post-call log
-        let duration = start.elapsed();
-        let post_entry = AuditEntry::new(correlation_id, agent, tool_name)
-            .with_result(AuditResult::Success)
-            .with_duration(duration)
-            .with_output_size(output.len());
-        post_entry.log();
-
-        Ok(CallToolResult::success(vec![Content::text(output)]))
     }
 }
 
@@ -231,5 +250,50 @@ mod tests {
             .and_then(|v| v.as_str().map(|s| s.to_string()))
             .unwrap_or_else(|| "unknown".to_string());
         assert_eq!(correlation_id, "unknown");
+    }
+
+    // ── decide() tests ────────────────────────────────────────────────────────
+
+    #[test]
+    fn decide_allows_permitted_tool_with_rate_ok() {
+        let am = crate::allowlist::AllowlistManager::new();
+        let d = decide(&am, "code-reviewer", "github.get_pr_diff", true);
+        assert!(matches!(d, Decision::Allowed { .. }));
+        if let Decision::Allowed { message } = d {
+            assert!(message.contains("Proxying to GitHub MCP"), "got: {message}");
+        }
+    }
+
+    #[test]
+    fn decide_blocks_disallowed_tool_regardless_of_rate() {
+        let am = crate::allowlist::AllowlistManager::new();
+        let d = decide(&am, "code-reviewer", "shell.run", true);
+        assert!(matches!(d, Decision::BlockedByAllowlist { .. }));
+        if let Decision::BlockedByAllowlist { message } = d {
+            assert!(message.contains("not allowed"), "got: {message}");
+        }
+    }
+
+    #[test]
+    fn decide_blocks_rate_limited_even_if_tool_is_allowed() {
+        let am = crate::allowlist::AllowlistManager::new();
+        let d = decide(&am, "code-reviewer", "github.get_pr_diff", false);
+        assert!(matches!(d, Decision::BlockedByRateLimit { .. }));
+        if let Decision::BlockedByRateLimit { message } = d {
+            assert!(message.contains("Rate limit exceeded"), "got: {message}");
+        }
+    }
+
+    #[test]
+    fn toolshed_server_constructs_without_panic() {
+        let _s = ToolshedServer::new();
+    }
+
+    #[test]
+    fn get_info_returns_toolshed_name_and_version() {
+        let s = ToolshedServer::new();
+        let info = s.get_info();
+        assert_eq!(info.server_info.name, "goose-toolshed");
+        assert!(!info.server_info.version.is_empty());
     }
 }
