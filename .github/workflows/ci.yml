@@ -18,8 +18,10 @@ jobs:
       - name: Lint Markdown
         uses: DavidAnson/markdownlint-cli2-action@v19
         with:
-          globs: '**/*.md'
-          continue-on-error: false
+          globs: |
+            **/*.md
+            !.codewhale/**
+            !node_modules/**
       - name: Lint YAML
         run: |
           pip install yamllint
