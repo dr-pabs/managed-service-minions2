@@ -110,6 +110,10 @@ function sendACP(method, params) {
   });
 }
 
+function logSession(event, fields) {
+  process.stdout.write(JSON.stringify({ event, ...fields, ts: new Date().toISOString() }) + '\n');
+}
+
 async function ensureSession(userId) {
   if (sessions.has(userId)) return sessions.get(userId);
   const result = await sendACP('session/new', {
@@ -120,6 +124,7 @@ async function ensureSession(userId) {
   const sid = result.result.sessionId;
   sessions.set(userId, sid);
   console.log(`[teams-bot] Session created for user ${userId}: ${sid}`);
+  logSession('session_start', { correlation_id: sid, channel: 'teams', user: userId });
   return sid;
 }
 
@@ -144,7 +149,14 @@ async function sendToGoose(userMessage, userId) {
   });
 
   // Wait for streaming chunks to complete
-  return responsePromise;
+  try {
+    const text = await responsePromise;
+    logSession('session_end', { correlation_id: sid, status: 'completed', retries: 0 });
+    return text;
+  } catch (err) {
+    logSession('session_end', { correlation_id: sid, status: 'failed', retries: 0 });
+    throw err;
+  }
 }
 
 // ── Teams Bot ──────────────────────────────────────────────────────────────
