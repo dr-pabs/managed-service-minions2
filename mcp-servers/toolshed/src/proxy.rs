@@ -162,7 +162,7 @@ impl ServerHandler for ToolshedServer {
                     .with_result(AuditResult::Blocked)
                     .with_reason("allowlist_denied")
                     .log();
-                return Ok(CallToolResult::success(vec![Content::text(message.clone())]));
+                Ok(CallToolResult::success(vec![Content::text(message.clone())]))
             }
             Decision::BlockedByRateLimit { ref message } => {
                 AuditEntry::new(correlation_id, agent, tool_name)
@@ -170,7 +170,7 @@ impl ServerHandler for ToolshedServer {
                     .with_result(AuditResult::Blocked)
                     .with_reason("rate_limited")
                     .log();
-                return Ok(CallToolResult::success(vec![Content::text(message.clone())]));
+                Ok(CallToolResult::success(vec![Content::text(message.clone())]))
             }
             Decision::Allowed { ref message } => {
                 // 4. Pre-call log
