@@ -215,6 +215,59 @@ hr.dim{border:none;border-top:1px solid var(--border);margin:28px 0}
 .before .compare-list li::before{content:'✗';color:var(--red)}
 .after  .compare-list li::before{content:'✓';color:var(--green)}
 
+/* ── ═══ OBSERVABILITY ═══ ─────────────────────────────────── */
+.obs-dash-nav{display:flex;border-bottom:1px solid var(--border);background:var(--surf);border-radius:12px 12px 0 0;overflow:hidden}
+.obs-dtab{padding:11px 18px;font-size:12px;font-weight:700;cursor:pointer;color:var(--txt2);border-bottom:2px solid transparent;transition:all .18s;white-space:nowrap}
+.obs-dtab:hover{color:var(--txt);background:rgba(255,255,255,.03)}
+.obs-dtab.active{color:var(--blue);border-bottom-color:var(--blue);background:rgba(79,143,255,.06)}
+.obs-pane{display:none;padding:20px}
+.obs-pane.active{display:block}
+.obs-big{font-size:36px;font-weight:800;line-height:1}
+.obs-label{font-size:11px;color:var(--txt2);text-transform:uppercase;letter-spacing:.07em;margin-top:4px}
+.live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;margin-right:6px;vertical-align:middle}
+.obs-feed{display:flex;flex-direction:column;gap:0;max-height:220px;overflow-y:auto}
+.obs-feed-item{display:flex;gap:12px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px}
+.obs-feed-item:last-child{border-bottom:none}
+.obs-feed-ts{color:var(--txt3);font-family:monospace;flex-shrink:0;min-width:58px}
+.obs-feed-agent{font-weight:700;flex-shrink:0;min-width:110px}
+.obs-feed-tool{font-family:monospace;color:var(--txt2);flex:1}
+.obs-feed-dur{color:var(--txt3);margin-left:auto;flex-shrink:0;font-size:11px}
+.obs-table{width:100%;border-collapse:collapse;font-size:12px}
+.obs-table th{background:var(--card2);padding:9px 12px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--txt3);border-bottom:1px solid var(--border)}
+.obs-table td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.obs-table tr:last-child td{border-bottom:none}
+.obs-table tr:hover td{background:rgba(255,255,255,.02)}
+.obs-corr{font-family:monospace;font-size:11px;color:var(--blue)}
+.pipe-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;transition:border-color .2s}
+.pipe-card:hover{border-color:var(--border2)}
+.pipe-card-title{font-size:13px;font-weight:700;margin-bottom:4px}
+.pipe-card-body{font-size:12px;color:var(--txt2);line-height:1.55}
+.pipe-arrow{text-align:center;color:var(--txt3);font-size:20px;padding:2px 0;line-height:1}
+.obs-log-block{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;font-family:monospace;font-size:11px;color:var(--txt2);line-height:1.8;overflow-x:auto}
+.obs-log-key{color:var(--blue)}
+.obs-log-str{color:var(--green)}
+.obs-log-num{color:var(--amber)}
+.corr-wrap{background:var(--surf);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.corr-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;font-size:12px}
+.corr-id-badge{font-family:monospace;font-size:11px;background:rgba(79,143,255,.12);border:1px solid rgba(79,143,255,.3);color:var(--blue);padding:3px 10px;border-radius:6px}
+.corr-events{display:flex;flex-direction:column;gap:0}
+.corr-event{display:flex;align-items:flex-start;gap:12px;padding:9px 16px;border-bottom:1px solid var(--border);font-size:12px}
+.corr-event:last-child{border-bottom:none}
+.corr-time{font-family:monospace;color:var(--txt3);flex-shrink:0;min-width:58px}
+.corr-who{font-weight:700;flex-shrink:0;min-width:110px}
+.corr-what{font-family:monospace;color:var(--txt2);flex:1}
+.corr-dur{color:var(--txt3);font-size:11px;margin-left:auto;flex-shrink:0;min-width:52px;text-align:right}
+.alert-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}
+.alert-card{border-radius:10px;padding:16px}
+.alert-p1{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.3)}
+.alert-p2{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.3)}
+.alert-p3{background:rgba(79,143,255,.08);border:1px solid rgba(79,143,255,.3)}
+.alert-sev{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+.alert-title{font-size:13px;font-weight:700;margin-bottom:8px}
+.alert-rules{list-style:none;display:flex;flex-direction:column;gap:4px}
+.alert-rules li{font-size:12px;color:var(--txt2);display:flex;gap:6px}
+.alert-rules li::before{content:'›';flex-shrink:0}
+
 /* ── Animations ────────────────────────────────────────── */
 @keyframes countUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .animate-in{animation:countUp .5s ease-out forwards}
@@ -233,6 +286,7 @@ hr.dim{border:none;border-top:1px solid var(--border);margin:28px 0}
   <div class="tab" onclick="showPage('agents')">7 Agents</div>
   <div class="tab" onclick="showPage('workflow')">Workflow</div>
   <div class="tab" onclick="showPage('benefits')">Benefits</div>
+  <div class="tab" onclick="showPage('obs')">Observability</div>
 </nav>
 
 <!-- ══════════════════════════════════════ HOME ══ -->
@@ -637,6 +691,363 @@ hr.dim{border:none;border-top:1px solid var(--border);margin:28px 0}
   </table>
 </div>
 
+<!-- ══════════════════════════════════════ OBSERVABILITY ══ -->
+<div id="page-obs" class="page">
+  <div class="hero">
+    <div class="hero-badge">Real-Time &nbsp;·&nbsp; Log Analytics &nbsp;·&nbsp; Full Audit Trail</div>
+    <div class="h1">Complete <span class="accent-blue">Observability</span></div>
+    <p class="lead" style="max-width:640px;margin:0 auto 0">
+      Every agent action, every tool call, every token consumed — captured, correlated, and queryable in real time. Nothing runs unobserved.
+    </p>
+  </div>
+
+  <div class="stat-row" style="margin-top:8px">
+    <div class="stat"><div class="stat-n" style="color:var(--green)">100%</div><div class="stat-l">tool calls audited</div></div>
+    <div class="stat"><div class="stat-n" style="color:var(--blue)">1</div><div class="stat-l">correlation ID per session</div></div>
+    <div class="stat"><div class="stat-n" style="color:var(--purple)">7</div><div class="stat-l">agents tracked individually</div></div>
+    <div class="stat"><div class="stat-n" style="color:var(--amber)">≤2min</div><div class="stat-l">log ingestion lag</div></div>
+  </div>
+
+  <hr class="dim">
+
+  <!-- Live Dashboard Mock -->
+  <div class="eyebrow">Live Dashboard</div>
+  <div class="h2" style="margin-bottom:6px">What You Can See Right Now</div>
+  <p class="lead" style="margin-bottom:16px">A React SPA on port 3001, backed by an Express API querying Azure Log Analytics via KQL. Select a view to explore what the dashboard shows:</p>
+
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:32px">
+    <div class="obs-dash-nav">
+      <div class="obs-dtab active" onclick="selDash('live')">⚡ Live</div>
+      <div class="obs-dtab" onclick="selDash('sessions')">📋 Sessions</div>
+      <div class="obs-dtab" onclick="selDash('tools')">🔧 Tools</div>
+      <div class="obs-dtab" onclick="selDash('cost')">💰 Cost</div>
+      <div class="obs-dtab" onclick="selDash('config')">⚙️ Config</div>
+    </div>
+
+    <!-- ── Live ── -->
+    <div id="dash-live" class="obs-pane active">
+      <div class="grid-3" style="margin-bottom:20px">
+        <div style="text-align:center;padding:10px">
+          <div class="obs-big" style="color:var(--green)">3</div>
+          <div class="obs-label" style="margin-top:6px"><span class="live-dot"></span>Active Agents</div>
+        </div>
+        <div style="text-align:center;padding:10px">
+          <div class="obs-big">47</div>
+          <div class="obs-label" style="margin-top:6px">Completed Today</div>
+        </div>
+        <div style="text-align:center;padding:10px">
+          <div class="obs-big" style="color:var(--amber)">4.2m</div>
+          <div class="obs-label" style="margin-top:6px">Avg Duration</div>
+        </div>
+      </div>
+      <div class="obs-label" style="margin-bottom:8px"><span class="live-dot"></span>Tool Call Stream &mdash; <code>/api/live/stream</code> (SSE)</div>
+      <div class="obs-feed">
+        <div class="obs-feed-item">
+          <span class="obs-feed-ts">09:41:22</span>
+          <span class="obs-feed-agent" style="color:var(--green)">code-writer</span>
+          <span class="obs-feed-tool">filesystem.write_file</span>
+          <span class="obs-feed-dur" style="color:var(--green)">success · 180ms</span>
+        </div>
+        <div class="obs-feed-item">
+          <span class="obs-feed-ts">09:41:19</span>
+          <span class="obs-feed-agent" style="color:var(--green)">code-writer</span>
+          <span class="obs-feed-tool">shell.execute</span>
+          <span class="obs-feed-dur" style="color:var(--green)">success · 4,210ms</span>
+        </div>
+        <div class="obs-feed-item">
+          <span class="obs-feed-ts">09:41:08</span>
+          <span class="obs-feed-agent" style="color:var(--blue)">code-explorer</span>
+          <span class="obs-feed-tool">filesystem.read_file</span>
+          <span class="obs-feed-dur" style="color:var(--green)">success · 95ms</span>
+        </div>
+        <div class="obs-feed-item">
+          <span class="obs-feed-ts">09:40:54</span>
+          <span class="obs-feed-agent" style="color:var(--amber)">ticket-analyst</span>
+          <span class="obs-feed-tool">ado.query_work_items</span>
+          <span class="obs-feed-dur" style="color:var(--green)">success · 340ms</span>
+        </div>
+        <div class="obs-feed-item">
+          <span class="obs-feed-ts">09:40:41</span>
+          <span class="obs-feed-agent" style="color:var(--red)">security-auditor</span>
+          <span class="obs-feed-tool">github.get_advisories</span>
+          <span class="obs-feed-dur" style="color:var(--green)">success · 620ms</span>
+        </div>
+        <div class="obs-feed-item">
+          <span class="obs-feed-ts">09:40:30</span>
+          <span class="obs-feed-agent" style="color:var(--blue)">code-reviewer</span>
+          <span class="obs-feed-tool">github.get_pr_diff</span>
+          <span class="obs-feed-dur" style="color:var(--green)">success · 512ms</span>
+        </div>
+      </div>
+      <p style="font-size:11px;color:var(--txt3);margin-top:10px">Stream delivered via Server-Sent Events — dashboard updates in real time as agents run, with no polling required.</p>
+    </div>
+
+    <!-- ── Sessions ── -->
+    <div id="dash-sessions" class="obs-pane">
+      <p style="font-size:13px;color:var(--txt2);margin-bottom:14px;line-height:1.6">Every orchestration session — from trigger to result. The correlation ID links every agent call and tool log for that session. Route: <code>/api/sessions</code> &nbsp;·&nbsp; <code>/api/sessions/:corrId/tree</code></p>
+      <table class="obs-table">
+        <thead><tr><th>Time</th><th>Correlation ID</th><th>Trigger</th><th>Agents</th><th>Duration</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td style="color:var(--txt2)">09:41</td><td class="obs-corr">corr_a1b2c3d4</td><td>ADO work item</td><td>6</td><td>4m 12s</td><td><span class="pill p-green">completed</span></td></tr>
+          <tr><td style="color:var(--txt2)">09:35</td><td class="obs-corr">corr_f9e2b1a7</td><td>Slack</td><td>1</td><td>48s</td><td><span class="pill p-green">completed</span></td></tr>
+          <tr><td style="color:var(--txt2)">09:28</td><td class="obs-corr">corr_c3d4e5f6</td><td>ITSM ticket</td><td>6</td><td>6m 01s</td><td><span class="pill p-green">completed</span></td></tr>
+          <tr><td style="color:var(--txt2)">09:15</td><td class="obs-corr">corr_b7a6c5d4</td><td>Scheduled</td><td>5</td><td>3m 18s</td><td><span class="pill p-amber">partial</span></td></tr>
+          <tr><td style="color:var(--txt2)">09:02</td><td class="obs-corr">corr_d2e3f4a1</td><td>Webhook</td><td>1</td><td>1m 02s</td><td><span class="pill p-red">failed</span></td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:11px;color:var(--txt3);margin-top:12px">Clicking a correlation ID shows a tree of every agent and tool call — ordered by timestamp, with durations and results.</p>
+    </div>
+
+    <!-- ── Tools ── -->
+    <div id="dash-tools" class="obs-pane">
+      <p style="font-size:13px;color:var(--txt2);margin-bottom:14px;line-height:1.6">Per-tool call statistics across all agents — call volume, latency, and error rates over the past 24 hours. Route: <code>/api/tools</code></p>
+      <table class="obs-table">
+        <thead><tr><th>Agent</th><th>Tool</th><th>Calls (24h)</th><th>Avg Latency</th><th>Error Rate</th></tr></thead>
+        <tbody>
+          <tr><td style="color:var(--blue)">code-explorer</td><td><code>filesystem.read_file</code></td><td>211</td><td>88ms</td><td><span class="pill p-green">0%</span></td></tr>
+          <tr><td style="color:var(--green)">code-writer</td><td><code>shell.execute</code></td><td>142</td><td>3,820ms</td><td><span class="pill p-green">0%</span></td></tr>
+          <tr><td style="color:var(--blue)">code-reviewer</td><td><code>github.get_pr_diff</code></td><td>98</td><td>510ms</td><td><span class="pill p-green">1.0%</span></td></tr>
+          <tr><td style="color:var(--purple)">test-writer</td><td><code>shell.execute</code></td><td>87</td><td>4,100ms</td><td><span class="pill p-green">1.1%</span></td></tr>
+          <tr><td style="color:var(--amber)">ticket-analyst</td><td><code>ado.query_work_items</code></td><td>67</td><td>320ms</td><td><span class="pill p-green">0%</span></td></tr>
+          <tr><td style="color:var(--orange)">pr-crafter</td><td><code>github.create_pr</code></td><td>34</td><td>1,100ms</td><td><span class="pill p-amber">2.9%</span></td></tr>
+          <tr><td style="color:var(--red)">security-auditor</td><td><code>github.get_advisories</code></td><td>41</td><td>580ms</td><td><span class="pill p-green">0%</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── Cost ── -->
+    <div id="dash-cost" class="obs-pane">
+      <div class="grid-3" style="margin-bottom:20px">
+        <div style="text-align:center;padding:10px"><div class="obs-big" style="color:var(--green)">$1.24</div><div class="obs-label" style="margin-top:6px">Today</div></div>
+        <div style="text-align:center;padding:10px"><div class="obs-big">$8.40</div><div class="obs-label" style="margin-top:6px">This Week</div></div>
+        <div style="text-align:center;padding:10px"><div class="obs-big">$31.20</div><div class="obs-label" style="margin-top:6px">This Month</div></div>
+      </div>
+      <div class="obs-label" style="margin-bottom:12px">Token Spend by Agent — Today</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;gap:10px;font-size:12px"><span style="width:110px;color:var(--green)">code-writer</span><div style="flex:1;height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden"><div style="height:100%;width:72%;background:var(--green);border-radius:4px"></div></div><span style="min-width:36px;text-align:right;color:var(--txt2)">$0.31</span></div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:12px"><span style="width:110px;color:var(--purple)">test-writer</span><div style="flex:1;height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden"><div style="height:100%;width:58%;background:var(--purple);border-radius:4px"></div></div><span style="min-width:36px;text-align:right;color:var(--txt2)">$0.24</span></div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:12px"><span style="width:110px;color:var(--blue)">code-reviewer</span><div style="flex:1;height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden"><div style="height:100%;width:46%;background:var(--blue);border-radius:4px"></div></div><span style="min-width:36px;text-align:right;color:var(--txt2)">$0.19</span></div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:12px"><span style="width:110px;color:var(--orange)">pr-crafter</span><div style="flex:1;height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden"><div style="height:100%;width:33%;background:var(--orange);border-radius:4px"></div></div><span style="min-width:36px;text-align:right;color:var(--txt2)">$0.14</span></div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:12px"><span style="width:110px;color:var(--amber)">ticket-analyst</span><div style="flex:1;height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden"><div style="height:100%;width:22%;background:var(--amber);border-radius:4px"></div></div><span style="min-width:36px;text-align:right;color:var(--txt2)">$0.09</span></div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:12px"><span style="width:110px;color:var(--teal)">code-explorer</span><div style="flex:1;height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden"><div style="height:100%;width:12%;background:var(--teal);border-radius:4px"></div></div><span style="min-width:36px;text-align:right;color:var(--txt2)">$0.05</span></div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:12px"><span style="width:110px;color:var(--red)">security-audit</span><div style="flex:1;height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden"><div style="height:100%;width:5%;background:var(--red);border-radius:4px"></div></div><span style="min-width:36px;text-align:right;color:var(--txt2)">$0.02</span></div>
+      </div>
+      <p style="font-size:11px;color:var(--txt3);margin-top:14px">Container Apps scale to zero between sessions — no idle compute cost. Figures above are AI Foundry token spend only. Route: <code>/api/cost</code></p>
+    </div>
+
+    <!-- ── Config ── -->
+    <div id="dash-config" class="obs-pane">
+      <p style="font-size:13px;color:var(--txt2);margin-bottom:14px;line-height:1.6">Live view of each agent's Toolshed allowlist and environment. Any change to <code>allowlist.rs</code> is reflected here after redeployment. Route: <code>/api/config</code></p>
+      <table class="obs-table">
+        <thead><tr><th>Agent</th><th>Allowed Tools</th><th>Count</th></tr></thead>
+        <tbody>
+          <tr><td style="color:var(--amber)">ticket-analyst</td><td style="font-family:monospace;font-size:11px;color:var(--txt2)">ado.query_work_items, jira.search_issues</td><td>2</td></tr>
+          <tr><td style="color:var(--teal)">code-explorer</td><td style="font-family:monospace;font-size:11px;color:var(--txt2)">filesystem.list_directory, filesystem.read_file</td><td>2</td></tr>
+          <tr><td style="color:var(--green)">code-writer</td><td style="font-family:monospace;font-size:11px;color:var(--txt2)">filesystem.read_file, filesystem.list_directory, filesystem.write_file, shell.execute, github.get_file_contents, github.search_code</td><td>6</td></tr>
+          <tr><td style="color:var(--purple)">test-writer</td><td style="font-family:monospace;font-size:11px;color:var(--txt2)">filesystem.read_file, filesystem.list_directory, filesystem.write_file, shell.execute, github.get_file_contents</td><td>5</td></tr>
+          <tr><td style="color:var(--orange)">pr-crafter</td><td style="font-family:monospace;font-size:11px;color:var(--txt2)">github.create_branch, github.commit, github.create_pr, filesystem.write_file</td><td>4</td></tr>
+          <tr><td style="color:var(--blue)">code-reviewer</td><td style="font-family:monospace;font-size:11px;color:var(--txt2)">github.get_pr_diff, github.create_review_comment, github.get_pr_comments</td><td>3</td></tr>
+          <tr><td style="color:var(--red)">security-auditor</td><td style="font-family:monospace;font-size:11px;color:var(--txt2)">filesystem.read_file, github.get_advisories</td><td>2</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div><!-- end dashboard card -->
+
+  <hr class="dim">
+
+  <!-- Observability Pipeline -->
+  <div class="eyebrow">How It Works</div>
+  <div class="h2" style="margin-bottom:6px">The Observability Pipeline</div>
+  <p class="lead" style="margin-bottom:24px">Logs flow from the Toolshed proxy to Azure Log Analytics automatically. No separate metrics database, no log shipping agent to manage.</p>
+
+  <div class="grid-2" style="margin-bottom:32px;align-items:start;gap:24px">
+    <div style="display:flex;flex-direction:column;gap:0">
+      <div class="pipe-card" style="border-color:rgba(168,85,247,.45)">
+        <div class="pipe-card-title" style="color:var(--purple)">Toolshed MCP Proxy (Rust)</div>
+        <div class="pipe-card-body">Every tool call from every agent passes through here. It checks the allowlist, applies rate limiting, then writes a structured JSON audit log to stdout — whether the call succeeded or was blocked.</div>
+      </div>
+      <div class="pipe-arrow">↓<br><span style="font-size:10px;color:var(--txt3);font-style:italic">stdout JSON · one line per tool call</span></div>
+      <div class="pipe-card" style="border-color:rgba(79,143,255,.4)">
+        <div class="pipe-card-title" style="color:var(--blue)">Azure Container Apps Console</div>
+        <div class="pipe-card-body">Container Apps captures stdout from every running container automatically. No log agent to deploy or maintain — it is built in to the runtime. Bot session events (session_start / session_end) also flow this way.</div>
+      </div>
+      <div class="pipe-arrow">↓<br><span style="font-size:10px;color:var(--txt3);font-style:italic">Container Insights ingestion · ≤2 min lag</span></div>
+      <div class="pipe-card" style="border-color:rgba(61,214,140,.4)">
+        <div class="pipe-card-title" style="color:var(--green)">Log Analytics Workspace</div>
+        <div class="pipe-card-body">All logs land in <code>ContainerAppConsoleLogs_CL</code>. The Dashboard API runs KQL queries against this table for every view — sessions, costs, tool stats. Alert rules fire from here too, with no additional pipeline.</div>
+      </div>
+      <div class="pipe-arrow">↓<br><span style="font-size:10px;color:var(--txt3);font-style:italic">KQL queries via Azure SDK</span></div>
+      <div class="pipe-card" style="border-color:rgba(251,191,36,.4)">
+        <div class="pipe-card-title" style="color:var(--amber)">Dashboard API &amp; React SPA</div>
+        <div class="pipe-card-body">Express API on port 3001 serves JSON from KQL results. Live events pushed to the browser via SSE at <code>/api/live/stream</code>. The React front-end renders sessions, costs, tool stats, and config without any manual refresh.</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="eyebrow" style="margin-bottom:10px">Audit Log Format</div>
+      <p style="font-size:13px;color:var(--txt2);margin-bottom:12px;line-height:1.6">Every Toolshed log line is structured JSON. The <code>correlation_id</code> ties every log entry back to the session that initiated the work — enabling a full trace without any additional instrumentation.</p>
+      <div class="obs-log-block">
+<span style="color:var(--txt3)">// Successful tool call</span>
+{
+  <span class="obs-log-key">"ts"</span>: <span class="obs-log-str">"2026-06-17T09:41:22.140Z"</span>,
+  <span class="obs-log-key">"correlation_id"</span>: <span class="obs-log-str">"corr_a1b2c3d4"</span>,
+  <span class="obs-log-key">"minion_type"</span>: <span class="obs-log-str">"code-writer"</span>,
+  <span class="obs-log-key">"tool_name"</span>: <span class="obs-log-str">"filesystem.write_file"</span>,
+  <span class="obs-log-key">"result"</span>: <span class="obs-log-str">"success"</span>,
+  <span class="obs-log-key">"duration_ms"</span>: <span class="obs-log-num">180</span>
+}
+
+<span style="color:var(--txt3)">// Blocked call — security event (governance)</span>
+{
+  <span class="obs-log-key">"ts"</span>: <span class="obs-log-str">"2026-06-17T09:41:25.001Z"</span>,
+  <span class="obs-log-key">"correlation_id"</span>: <span class="obs-log-str">"corr_a1b2c3d4"</span>,
+  <span class="obs-log-key">"minion_type"</span>: <span class="obs-log-str">"code-explorer"</span>,
+  <span class="obs-log-key">"tool_name"</span>: <span class="obs-log-str">"filesystem.write_file"</span>,
+  <span class="obs-log-key">"result"</span>: <span class="obs-log-str">"blocked"</span>,
+  <span class="obs-log-key">"reason"</span>: <span class="obs-log-str">"allowlist_denied"</span>
+}</div>
+      <p style="font-size:11px;color:var(--txt3);margin-top:10px">Blocked calls are never silently dropped — every denial is a queryable, alertable event. The expected steady-state is zero denials.</p>
+
+      <div class="card" style="margin-top:20px;padding:16px">
+        <div class="h3" style="margin-bottom:8px">Dashboard API Routes</div>
+        <table class="obs-table">
+          <thead><tr><th>Route</th><th>What It Returns</th></tr></thead>
+          <tbody>
+            <tr><td><code>/api/live</code></td><td style="color:var(--txt2)">Active agents, recent completions, today's stats</td></tr>
+            <tr><td><code>/api/live/stream</code></td><td style="color:var(--txt2)">SSE stream — real-time tool call events</td></tr>
+            <tr><td><code>/api/sessions</code></td><td style="color:var(--txt2)">Session history with trigger, agents, duration, status</td></tr>
+            <tr><td><code>/api/sessions/:id/tree</code></td><td style="color:var(--txt2)">Full agent call tree for one correlation ID</td></tr>
+            <tr><td><code>/api/cost</code></td><td style="color:var(--txt2)">Daily token cost by agent and total</td></tr>
+            <tr><td><code>/api/tools</code></td><td style="color:var(--txt2)">Per-tool call count, avg latency, error rate</td></tr>
+            <tr><td><code>/api/config</code></td><td style="color:var(--txt2)">Live allowlists and environment metadata</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <hr class="dim">
+
+  <!-- Correlation Tracing -->
+  <div class="eyebrow">End-to-End Traceability</div>
+  <div class="h2" style="margin-bottom:6px">Follow Any Session — Ticket to PR</div>
+  <p class="lead" style="margin-bottom:20px">A single correlation ID issued at session start propagates through every agent, every tool call, and every log line. You can reconstruct exactly what happened, in order, with durations, from a single KQL query.</p>
+
+  <div class="corr-wrap" style="margin-bottom:32px">
+    <div class="corr-header">
+      <span style="color:var(--txt2)">Session trace</span>
+      <span class="corr-id-badge">corr_a1b2c3d4</span>
+      <span style="color:var(--txt3);font-size:12px">Trigger: ADO work item INC00421</span>
+      <span class="pill p-green" style="margin-left:auto">completed</span>
+    </div>
+    <div class="corr-events">
+      <div class="corr-event" style="background:rgba(79,143,255,.04)">
+        <span class="corr-time">09:40:50</span>
+        <span class="corr-who" style="color:var(--blue)">slack-bot</span>
+        <span class="corr-what">session_start &mdash; "Fix INC00421 and raise a PR"</span>
+        <span class="corr-dur">&mdash;</span>
+      </div>
+      <div class="corr-event">
+        <span class="corr-time">09:40:54</span>
+        <span class="corr-who" style="color:var(--amber)">ticket-analyst</span>
+        <span class="corr-what">ado.query_work_items &nbsp;&bull;&nbsp; INC00421</span>
+        <span class="corr-dur">340ms</span>
+      </div>
+      <div class="corr-event">
+        <span class="corr-time">09:41:02</span>
+        <span class="corr-who" style="color:var(--teal)">code-explorer</span>
+        <span class="corr-what">filesystem.list_directory &nbsp;&bull;&nbsp; /src/auth</span>
+        <span class="corr-dur">112ms</span>
+      </div>
+      <div class="corr-event">
+        <span class="corr-time">09:41:05</span>
+        <span class="corr-who" style="color:var(--teal)">code-explorer</span>
+        <span class="corr-what">filesystem.read_file &nbsp;&bull;&nbsp; /src/auth/session.ts:1-180</span>
+        <span class="corr-dur">95ms</span>
+      </div>
+      <div class="corr-event">
+        <span class="corr-time">09:41:12</span>
+        <span class="corr-who" style="color:var(--green)">code-writer</span>
+        <span class="corr-what">filesystem.write_file &nbsp;&bull;&nbsp; /src/auth/session.ts</span>
+        <span class="corr-dur">180ms</span>
+      </div>
+      <div class="corr-event">
+        <span class="corr-time">09:41:14</span>
+        <span class="corr-who" style="color:var(--green)">code-writer</span>
+        <span class="corr-what">shell.execute &nbsp;&bull;&nbsp; npm test src/auth/session.test.ts</span>
+        <span class="corr-dur">4,210ms</span>
+      </div>
+      <div class="corr-event">
+        <span class="corr-time">09:41:22</span>
+        <span class="corr-who" style="color:var(--purple)">test-writer</span>
+        <span class="corr-what">filesystem.write_file &nbsp;&bull;&nbsp; /tests/integration/auth.test.ts</span>
+        <span class="corr-dur">160ms</span>
+      </div>
+      <div class="corr-event">
+        <span class="corr-time">09:41:24</span>
+        <span class="corr-who" style="color:var(--purple)">test-writer</span>
+        <span class="corr-what">shell.execute &nbsp;&bull;&nbsp; npm run test:integration</span>
+        <span class="corr-dur">3,100ms</span>
+      </div>
+      <div class="corr-event">
+        <span class="corr-time">09:44:28</span>
+        <span class="corr-who" style="color:var(--orange)">pr-crafter</span>
+        <span class="corr-what">github.create_pr &nbsp;&bull;&nbsp; fix/INC00421 &rarr; main</span>
+        <span class="corr-dur">890ms</span>
+      </div>
+      <div class="corr-event" style="background:rgba(61,214,140,.04)">
+        <span class="corr-time">09:45:02</span>
+        <span class="corr-who" style="color:var(--blue)">slack-bot</span>
+        <span class="corr-what">session_end &mdash; PR #147 raised &nbsp;&bull;&nbsp; status: completed</span>
+        <span class="corr-dur">&mdash;</span>
+      </div>
+    </div>
+  </div>
+
+  <hr class="dim">
+
+  <!-- Alerting -->
+  <div class="eyebrow">Proactive Alerting</div>
+  <div class="h2" style="margin-bottom:6px">Know Before Your Users Do</div>
+  <p class="lead" style="margin-bottom:16px">KQL alert rules on Log Analytics fire automatically to PagerDuty or Teams. Every alert tier maps to a specific response time and audience.</p>
+
+  <div class="alert-grid">
+    <div class="alert-card alert-p1">
+      <div class="alert-sev" style="color:var(--red)">P1 &mdash; 15 min response</div>
+      <div class="alert-title">Service Down</div>
+      <ul class="alert-rules">
+        <li>Orchestrator: no heartbeat for 5 min</li>
+        <li>5xx error rate &gt;20% sustained 5 min</li>
+        <li>AI Foundry quota exhausted</li>
+      </ul>
+    </div>
+    <div class="alert-card alert-p2">
+      <div class="alert-sev" style="color:var(--amber)">P2 &mdash; 30 min response</div>
+      <div class="alert-title">Degraded Service</div>
+      <ul class="alert-rules">
+        <li>Agent failure rate &gt;10% for 15 min</li>
+        <li>Timeout rate &gt;5% for 15 min</li>
+        <li>Service Bus dead-letter &gt;0</li>
+        <li>Container restart loop (3+ in 10 min)</li>
+      </ul>
+    </div>
+    <div class="alert-card alert-p3">
+      <div class="alert-sev" style="color:var(--blue)">P3 &mdash; 2 hr response</div>
+      <div class="alert-title">Anomalies &amp; Governance</div>
+      <ul class="alert-rules">
+        <li>Any allowlist denial detected</li>
+        <li>P95 latency &gt;10s for 15 min</li>
+        <li>Container CPU &gt;80% for 10 min</li>
+        <li>Daily spend &gt;2&times; rolling average</li>
+      </ul>
+    </div>
+  </div>
+
+  <div style="margin-top:20px;background:rgba(168,85,247,.07);border:1px solid rgba(168,85,247,.25);border-radius:10px;padding:16px 20px;font-size:13px;color:var(--txt2);line-height:1.65">
+    <strong style="color:var(--txt)">Governance alert: zero allowlist denials should be the normal operating state.</strong> A denial means an agent attempted a tool outside its permitted scope — this is a governance event, not just a failure. P3 alerting ensures every denial is reviewed, even when it causes no outage. The allowlist itself is Rust-compiled and version-controlled: changing what an agent can do requires a code change, a PR, and a deployment.
+  </div>
+</div><!-- end page-obs -->
+
 <script>
 /* ── Page navigation ── */
 function showPage(id){
@@ -775,6 +1186,14 @@ function setFlow(key){
     </div>`;
   }).join('');
   document.getElementById('flow-note').innerHTML=f.note;
+}
+
+/* ── Observability dashboard mini-tabs ── */
+function selDash(id){
+  document.querySelectorAll('.obs-dtab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.obs-pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById('dash-'+id).classList.add('active');
+  document.querySelector(`.obs-dtab[onclick="selDash('${id}')"]`).classList.add('active');
 }
 
 /* init */
