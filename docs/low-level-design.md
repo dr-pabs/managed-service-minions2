@@ -1012,7 +1012,7 @@ ______________________________________________________________________
     "version": "0.1.0",
     "description": "Multi-agent orchestration framework",
     "author": { "name": "Goose Agent Framework Team" },
-    "repository": "https://github.com/org/goose-agent-framework",
+    "repository": "https://github.com/dr-pabs/managed-service-minions2",
     "license": "Apache-2.0",
     "agents": "./agents/",
     "skills": "./skills/",
@@ -1085,7 +1085,7 @@ ______________________________________________________________________
 
 ```bash
 # 1. Install the framework plugin
-goose plugin install https://github.com/org/goose-agent-framework
+goose plugin install https://github.com/dr-pabs/managed-service-minions2
 
 # 2. Build and register the toolshed
 cargo build --release --manifest-path mcp-servers/toolshed/Cargo.toml

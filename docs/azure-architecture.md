@@ -627,7 +627,7 @@ flowchart TB
 ```
 
 ```
-GitHub Repo: org/goose-agent-framework
+GitHub Repo: dr-pabs/managed-service-minions2
 │
 ├── PR opened
 │   ├── Lint (Bicep, YAML, Markdown)

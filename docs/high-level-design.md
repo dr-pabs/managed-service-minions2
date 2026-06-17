@@ -803,7 +803,7 @@ GitHub serves multiple roles in the framework, not just as an integration target
 The Goose agent framework itself lives in GitHub:
 
 ```
-github.com/your-org/goose-agent-framework/
+github.com/dr-pabs/managed-service-minions2
 ├── extensions/
 │   ├── orchestrator/
 │   │   ├── extension.yaml
