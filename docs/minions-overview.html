@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minions Framework — Overview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #fff; color: #111; }
+
+  /* Nav tabs */
+  .tabs { display: flex; border-bottom: 2px solid #e5e7eb; background: #f8f9fa; }
+  .tab { padding: 14px 24px; font-size: 14px; font-weight: 600; cursor: pointer; color: #6b7280; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all .2s; letter-spacing: .02em; }
+  .tab.active { color: #2563eb; border-bottom-color: #2563eb; background: #fff; }
+  .tab:hover:not(.active) { color: #111; background: #f0f1f3; }
+
+  .page { display: none; padding: 32px; max-width: 960px; margin: 0 auto; }
+  .page.active { display: block; }
+
+  /* ── HERO ── */
+  .hero { text-align: center; padding: 24px 0 36px; }
+  .hero-badge { display: inline-block; background: #eff6ff; color: #1d4ed8; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 4px 12px; border-radius: 20px; margin-bottom: 18px; }
+  .hero h1 { font-size: 36px; font-weight: 800; letter-spacing: -.02em; margin-bottom: 12px; }
+  .hero h1 span { color: #2563eb; }
+  .hero p { font-size: 17px; color: #6b7280; max-width: 580px; margin: 0 auto 28px; line-height: 1.6; }
+  .hero-stats { display: flex; justify-content: center; gap: 40px; }
+  .stat { text-align: center; }
+  .stat-n { font-size: 32px; font-weight: 800; color: #2563eb; }
+  .stat-l { font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: .06em; margin-top: 2px; }
+
+  /* ── ARCHITECTURE ── */
+  .arch-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #6b7280; margin-bottom: 8px; }
+  .arch-tier { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 4px 0; }
+  .arch-arrow-down { display: flex; flex-direction: column; align-items: center; margin: 2px 0; }
+  .arrow-label { font-size: 11px; color: #6b7280; font-style: italic; }
+
+  .arch-box { border-radius: 10px; padding: 10px 16px; text-align: center; font-weight: 700; font-size: 13px; min-width: 120px; position: relative; }
+  .box-input    { background: #f0fdf4; border: 2px solid #16a34a; color: #15803d; }
+  .box-orch     { background: #eff6ff; border: 2px solid #2563eb; color: #1d4ed8; min-width: 200px; padding: 14px 20px; }
+  .box-orch .sub { font-size: 11px; font-weight: 400; color: #6b7280; margin-top: 3px; }
+  .box-toolshed { background: #fdf4ff; border: 2px solid #9333ea; color: #7e22ce; min-width: 280px; padding: 12px 20px; }
+  .box-toolshed .sub { font-size: 11px; font-weight: 400; color: #6b7280; margin-top: 3px; }
+  .box-tools { background: #f8f9fa; border: 1.5px solid #d1d5db; color: #6b7280; font-size: 12px; font-weight: 600; padding: 7px 12px; min-width: 90px; }
+
+  .dispatch-note { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #15803d; margin: 8px 0; text-align: center; max-width: 500px; margin-left: auto; margin-right: auto; }
+  .toolshed-note { background: #fdf4ff; border: 1px solid #e9d5ff; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #7e22ce; margin: 8px 0; text-align: center; max-width: 500px; margin-left: auto; margin-right: auto; }
+
+  /* Agent chips */
+  .agent-grid { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: 0; }
+  .agent-chip { border-radius: 8px; padding: 8px 12px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all .2s; border: 2px solid transparent; min-width: 110px; text-align: center; }
+  .agent-chip:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.12); }
+  .agent-chip.selected { border-color: #111; box-shadow: 0 4px 12px rgba(0,0,0,.15); }
+  .agent-chip .chip-role { font-size: 10px; font-weight: 500; margin-top: 2px; }
+
+  .ac-ticket  { background: #fffbeb; color: #92400e; }
+  .ac-explore { background: #f0f9ff; color: #0369a1; }
+  .ac-writer  { background: #f0fdf4; color: #15803d; }
+  .ac-tests   { background: #fdf4ff; color: #7e22ce; }
+  .ac-pr      { background: #fff7ed; color: #c2410c; }
+  .ac-review  { background: #eff6ff; color: #1d4ed8; }
+  .ac-security{ background: #fef2f2; color: #dc2626; }
+
+  .agent-detail { margin-top: 16px; border: 1.5px solid #e5e7eb; border-radius: 12px; padding: 20px; min-height: 120px; }
+  .detail-name  { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
+  .detail-role  { font-size: 12px; color: #6b7280; font-family: monospace; margin-bottom: 12px; }
+  .detail-desc  { font-size: 14px; line-height: 1.6; color: #6b7280; margin-bottom: 12px; }
+  .tools-label  { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #6b7280; margin-bottom: 6px; }
+  .tool-tags    { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tool-tag     { background: #f3f4f6; color: #111; font-size: 11px; font-family: monospace; padding: 3px 8px; border-radius: 5px; border: 1px solid #e5e7eb; }
+
+  /* Workflow */
+  .flow-container { overflow-x: auto; padding-bottom: 8px; }
+  .flow-steps { display: flex; align-items: flex-start; gap: 0; min-width: 700px; }
+  .flow-step { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; }
+  .flow-step:not(:last-child)::after { content: ''; position: absolute; top: 28px; left: 50%; width: 100%; height: 2px; background: #d1d5db; z-index: 0; }
+  .flow-circle { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; position: relative; z-index: 1; border: 3px solid white; box-shadow: 0 0 0 2px #e5e7eb; }
+  .flow-label { font-size: 11px; font-weight: 700; text-align: center; margin-top: 8px; line-height: 1.3; max-width: 80px; }
+  .flow-sub   { font-size: 10px; color: #6b7280; text-align: center; margin-top: 3px; max-width: 80px; line-height: 1.3; }
+  .fc-1 { background: #fef3c7; }
+  .fc-2 { background: #dbeafe; }
+  .fc-3 { background: #dcfce7; }
+  .fc-4 { background: #f3e8ff; }
+  .fc-5 { background: #ffedd5; }
+  .fc-6 { background: #dbeafe; }
+  .fc-7 { background: #fee2e2; }
+
+  .flow-note { margin-top: 24px; background: #f8f9fa; border-radius: 10px; padding: 16px 20px; font-size: 13px; line-height: 1.6; color: #6b7280; border: 1px solid #e5e7eb; }
+  .flow-note strong { color: #111; }
+
+  /* Benefits */
+  .benefits-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .benefit-card { border: 1.5px solid #e5e7eb; border-radius: 12px; padding: 20px; }
+  .benefit-icon { font-size: 28px; margin-bottom: 10px; }
+  .benefit-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+  .benefit-body  { font-size: 13px; color: #6b7280; line-height: 1.6; }
+  .benefit-metric   { margin-top: 10px; font-size: 24px; font-weight: 800; color: #2563eb; }
+  .benefit-metric-l { font-size: 12px; color: #6b7280; }
+
+  .section-title { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+  .section-sub   { font-size: 14px; color: #6b7280; margin-bottom: 24px; line-height: 1.5; }
+
+  /* Governance table */
+  .gov-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .gov-table th { background: #f3f4f6; padding: 10px 14px; text-align: left; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: #6b7280; }
+  .gov-table td { padding: 10px 14px; border-bottom: 1px solid #e5e7eb; }
+  .gov-table tr:hover td { background: #f8f9fa; }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .pill-green  { background: #dcfce7; color: #15803d; }
+  .pill-blue   { background: #dbeafe; color: #1d4ed8; }
+  .pill-purple { background: #f3e8ff; color: #7e22ce; }
+  .pill-orange { background: #ffedd5; color: #c2410c; }
+  .pill-red    { background: #fee2e2; color: #dc2626; }
+
+  code { font-family: monospace; font-size: 0.9em; }
+</style>
+</head>
+<body>
+
+<div class="tabs">
+  <div class="tab active" onclick="show('overview')">Overview</div>
+  <div class="tab" onclick="show('architecture')">Architecture</div>
+  <div class="tab" onclick="show('agents')">7 Agents</div>
+  <div class="tab" onclick="show('workflow')">Workflow</div>
+  <div class="tab" onclick="show('benefits')">Benefits</div>
+</div>
+
+<!-- ═══════════════════════════════════ OVERVIEW -->
+<div id="page-overview" class="page active">
+  <div class="hero">
+    <div class="hero-badge">AI-Powered Managed Service</div>
+    <h1>The <span>Minions</span> Framework</h1>
+    <p>Multi-agent AI orchestration for managed services. Classifies incoming requests, dispatches to specialist agents, governs every tool call, and returns structured results — without human bottlenecks.</p>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-n">7</div><div class="stat-l">Specialist Agents</div></div>
+      <div class="stat"><div class="stat-n">100%</div><div class="stat-l">Tool Governance</div></div>
+      <div class="stat"><div class="stat-n">6</div><div class="stat-l">Workflow Stages</div></div>
+      <div class="stat"><div class="stat-n">24/7</div><div class="stat-l">Autonomous Operation</div></div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:8px;">
+    <div style="background:#eff6ff;border-radius:12px;padding:20px;">
+      <div style="font-size:22px;margin-bottom:8px;">🎯</div>
+      <div style="font-weight:700;margin-bottom:6px;">Intent Classification</div>
+      <div style="font-size:13px;color:#6b7280;line-height:1.6;">Natural language requests from Slack or Teams are classified into structured intents — no rigid forms or menus required.</div>
+    </div>
+    <div style="background:#f0fdf4;border-radius:12px;padding:20px;">
+      <div style="font-size:22px;margin-bottom:8px;">🤖</div>
+      <div style="font-weight:700;margin-bottom:6px;">Specialist Dispatch</div>
+      <div style="font-size:13px;color:#6b7280;line-height:1.6;">The Orchestrator delegates to specialist agents — each focused on one job, using only the tools they need.</div>
+    </div>
+    <div style="background:#fdf4ff;border-radius:12px;padding:20px;">
+      <div style="font-size:22px;margin-bottom:8px;">🔒</div>
+      <div style="font-weight:700;margin-bottom:6px;">Governed Tool Access</div>
+      <div style="font-size:13px;color:#6b7280;line-height:1.6;">Every tool call passes through the Toolshed MCP server — allowlist-checked, rate-limited, and audit-logged in real time.</div>
+    </div>
+  </div>
+
+  <div style="margin-top:24px;background:#f8f9fa;border-radius:12px;padding:20px;border:1px solid #e5e7eb;">
+    <div style="font-weight:700;margin-bottom:10px;font-size:15px;">What makes Minions different?</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px;color:#374151;line-height:1.6;">
+      <div>✓ &nbsp;Agents call the Toolshed <strong>directly</strong> — no orchestrator bottleneck once dispatched</div>
+      <div>✓ &nbsp;Structured JSON output contracts — every agent's output is schema-validated</div>
+      <div>✓ &nbsp;Dead-letter handling with retry — failed agents surface cleanly, never silently</div>
+      <div>✓ &nbsp;Full audit trail — every tool call is logged with correlation ID, agent, and outcome</div>
+      <div>✓ &nbsp;Runs on Azure Container Apps — scales to zero, no idle cost</div>
+      <div>✓ &nbsp;Human approval gates for destructive operations — governance built in, not bolted on</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ ARCHITECTURE -->
+<div id="page-architecture" class="page">
+  <div class="section-title">System Architecture</div>
+  <div class="section-sub">The Orchestrator dispatches to agents. Each agent talks to the Toolshed <em>directly</em> — the Orchestrator is not in the tool-call path.</div>
+
+  <div class="arch-label" style="text-align:center;">User Channels</div>
+  <div class="arch-tier">
+    <div class="arch-box box-input">💬 Slack Bot</div>
+    <div class="arch-box box-input">💼 Teams Bot</div>
+  </div>
+
+  <div class="arch-arrow-down">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 4v13M6 13l6 6 6-6" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span class="arrow-label">user message</span>
+  </div>
+
+  <div class="arch-tier">
+    <div class="arch-box box-orch">
+      🧠 Orchestrator
+      <div class="sub">Classify intent · Build DAG · Dispatch</div>
+    </div>
+  </div>
+
+  <div class="dispatch-note">
+    ⬇ Orchestrator dispatches to one or more agents via <code>delegate()</code> calls — then waits for structured JSON results
+  </div>
+
+  <div class="arch-label" style="text-align:center;margin-top:4px;">Specialist Agents — each spawned with <code style="font-size:10px">extensions: ["toolshed"]</code></div>
+  <div class="arch-tier" style="flex-wrap:wrap;gap:8px;">
+    <div class="arch-box ac-ticket"  style="border-radius:8px;border:1.5px solid #f59e0b;font-size:11px;min-width:100px;padding:8px;">📋 Ticket Analyst</div>
+    <div class="arch-box ac-explore" style="border-radius:8px;border:1.5px solid #38bdf8;font-size:11px;min-width:100px;padding:8px;">🔍 Code Explorer</div>
+    <div class="arch-box ac-writer"  style="border-radius:8px;border:1.5px solid #4ade80;font-size:11px;min-width:100px;padding:8px;">✏️ Code Writer</div>
+    <div class="arch-box ac-tests"   style="border-radius:8px;border:1.5px solid #c084fc;font-size:11px;min-width:100px;padding:8px;">🧪 Test Writer</div>
+    <div class="arch-box ac-pr"      style="border-radius:8px;border:1.5px solid #fb923c;font-size:11px;min-width:100px;padding:8px;">🚀 PR Crafter</div>
+    <div class="arch-box ac-review"  style="border-radius:8px;border:1.5px solid #60a5fa;font-size:11px;min-width:100px;padding:8px;">👁 Code Reviewer</div>
+    <div class="arch-box ac-security"style="border-radius:8px;border:1.5px solid #f87171;font-size:11px;min-width:100px;padding:8px;">🛡 Security Auditor</div>
+  </div>
+
+  <div class="toolshed-note" style="margin-top:10px;">
+    ⬇ Each agent calls the Toolshed <strong>directly</strong> via MCP — allowlist checked, rate-limited, audit-logged per call
+  </div>
+
+  <div class="arch-tier" style="margin-top:4px;">
+    <div class="arch-box box-toolshed">
+      🔒 Toolshed MCP Server
+      <div class="sub">Allowlist · Rate Limit · Audit Log · Forward</div>
+    </div>
+  </div>
+
+  <div class="arch-arrow-down">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 4v13M6 13l6 6 6-6" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span class="arrow-label">governed tool calls</span>
+  </div>
+
+  <div class="arch-label" style="text-align:center;">External Tools &amp; Services</div>
+  <div class="arch-tier" style="flex-wrap:wrap;gap:8px;">
+    <div class="arch-box box-tools">GitHub API</div>
+    <div class="arch-box box-tools">Filesystem</div>
+    <div class="arch-box box-tools">Shell</div>
+    <div class="arch-box box-tools">Azure DevOps</div>
+    <div class="arch-box box-tools">Jira</div>
+  </div>
+
+  <div style="margin-top:28px;background:#f8f9fa;border-radius:10px;padding:16px 20px;font-size:13px;border:1px solid #e5e7eb;line-height:1.7;">
+    <strong>Key architecture principle:</strong> Once the Orchestrator dispatches an agent, that agent communicates <em>directly</em> with the Toolshed to call its tools. The Orchestrator only receives the final structured JSON result when the agent completes — it is never in the tool-call path. This means agents run independently and in parallel, each with their own Toolshed connection and per-agent allowlist enforcement.
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ AGENTS -->
+<div id="page-agents" class="page">
+  <div class="section-title">The 7 Specialist Agents</div>
+  <div class="section-sub">Click any agent to see its role, tools, and output contract. Each agent has an explicit allowlist of tools it can call — nothing outside the list is permitted.</div>
+
+  <div class="agent-grid" id="agent-grid">
+    <div class="agent-chip ac-ticket"  onclick="selectAgent(0)">📋 Ticket Analyst<div class="chip-role">ticket-analyst</div></div>
+    <div class="agent-chip ac-explore" onclick="selectAgent(1)">🔍 Code Explorer<div class="chip-role">code-explorer</div></div>
+    <div class="agent-chip ac-writer"  onclick="selectAgent(2)">✏️ Code Writer<div class="chip-role">code-writer</div></div>
+    <div class="agent-chip ac-tests"   onclick="selectAgent(3)">🧪 Test Writer<div class="chip-role">test-writer</div></div>
+    <div class="agent-chip ac-pr"      onclick="selectAgent(4)">🚀 PR Crafter<div class="chip-role">pr-crafter</div></div>
+    <div class="agent-chip ac-review"  onclick="selectAgent(5)">👁 Code Reviewer<div class="chip-role">code-reviewer</div></div>
+    <div class="agent-chip ac-security"onclick="selectAgent(6)">🛡 Security Auditor<div class="chip-role">security-auditor</div></div>
+  </div>
+
+  <div class="agent-detail" id="agent-detail">
+    <div style="color:#9ca3af;font-size:14px;">Select an agent above to see its capabilities.</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ WORKFLOW -->
+<div id="page-workflow" class="page">
+  <div class="section-title">End-to-End Workflow</div>
+  <div class="section-sub">A "fix this ticket and raise a PR" request triggers the full 6-stage pipeline. Each stage's output feeds directly into the next.</div>
+
+  <div class="flow-container">
+    <div class="flow-steps">
+      <div class="flow-step">
+        <div class="flow-circle fc-1">📋</div>
+        <div class="flow-label">Ticket Analyst</div>
+        <div class="flow-sub">Reads ticket, extracts scope &amp; priority</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-circle fc-2">🔍</div>
+        <div class="flow-label">Code Explorer</div>
+        <div class="flow-sub">Finds affected files &amp; traces logic</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-circle fc-3">✏️</div>
+        <div class="flow-label">Code Writer</div>
+        <div class="flow-sub">Implements fix + writes unit tests</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-circle fc-4">🧪</div>
+        <div class="flow-label">Test Writer</div>
+        <div class="flow-sub">Writes integration &amp; E2E tests</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-circle fc-5">🚀</div>
+        <div class="flow-label">PR Crafter</div>
+        <div class="flow-sub">Branches, commits, opens PR</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-circle fc-6">👁</div>
+        <div class="flow-label">Code Reviewer</div>
+        <div class="flow-sub">Reviews PR for bugs &amp; security</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-circle fc-7">🛡</div>
+        <div class="flow-label">Security Audit</div>
+        <div class="flow-sub">Final security scan before merge</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flow-note">
+    <strong>Parallel execution where possible.</strong> Single-purpose requests (e.g. "Review PR 342") dispatch just the Code Reviewer. The full pipeline only runs for complex intents like <em>ticket_fix_pr</em>. The Orchestrator builds a dependency graph (DAG) and spawns agents in the correct order, passing each agent's structured JSON output as the next agent's input. <strong>All tool calls — filesystem reads/writes, shell execution, GitHub API, ADO queries — happen inside each agent's direct connection to the Toolshed, not through the Orchestrator.</strong>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ BENEFITS -->
+<div id="page-benefits" class="page">
+  <div class="section-title">Managed Service Benefits</div>
+  <div class="section-sub">Why a governed multi-agent framework changes what a managed service can deliver.</div>
+
+  <div class="benefits-grid">
+    <div class="benefit-card">
+      <div class="benefit-icon">⚡</div>
+      <div class="benefit-title">Speed at Scale</div>
+      <div class="benefit-body">What takes an engineer 45 minutes — read ticket, find code, write fix, write tests, raise PR, review — Minions executes end-to-end in minutes. Parallel dispatch means multiple requests never queue behind each other.</div>
+      <div class="benefit-metric">~90%</div>
+      <div class="benefit-metric-l">reduction in ticket-to-PR cycle time</div>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-icon">🔒</div>
+      <div class="benefit-title">Governance Built In</div>
+      <div class="benefit-body">Every tool call is allowlist-checked before execution. Agents cannot call tools outside their permitted set — no accidental data access, no privilege escalation. Full audit log for every action, every agent, every session.</div>
+      <div class="benefit-metric">100%</div>
+      <div class="benefit-metric-l">of tool calls governed and logged</div>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-icon">🧩</div>
+      <div class="benefit-title">Specialist Quality</div>
+      <div class="benefit-body">Each agent is purpose-built and narrowly scoped. The Code Writer focuses only on correct implementation. The Security Auditor focuses only on vulnerabilities. Separation of concerns produces better results than a single generalist agent trying to do everything.</div>
+      <div class="benefit-metric">7</div>
+      <div class="benefit-metric-l">focused specialists, not one generalist</div>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-icon">📊</div>
+      <div class="benefit-title">Full Observability</div>
+      <div class="benefit-body">Real-time dashboard shows active agents, session history, tool call latency, failure rates, and estimated compute cost — all fed from Log Analytics. Operators see exactly what the system is doing at any moment.</div>
+      <div class="benefit-metric">Real-time</div>
+      <div class="benefit-metric-l">audit trail and cost visibility</div>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-icon">🔄</div>
+      <div class="benefit-title">Resilient by Design</div>
+      <div class="benefit-body">Failed agents are retried with exponential backoff, then dead-lettered with a clear explanation. Downstream agents in a pipeline are skipped cleanly. No silent failures — every outcome is surfaced to the operator.</div>
+      <div class="benefit-metric">3×</div>
+      <div class="benefit-metric-l">retry with dead-letter fallback</div>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-icon">☁️</div>
+      <div class="benefit-title">Azure-Native Operations</div>
+      <div class="benefit-body">Runs on Container Apps — scales to zero, no idle cost. Service Bus queues decouple orchestration from execution. Key Vault manages all secrets. Log Analytics provides the audit backbone. No custom infrastructure to manage.</div>
+      <div class="benefit-metric">Zero</div>
+      <div class="benefit-metric-l">idle compute cost at rest</div>
+    </div>
+  </div>
+
+  <div style="margin-top:24px;">
+    <div style="font-size:16px;font-weight:700;margin-bottom:14px;">Agent Governance at a Glance</div>
+    <table class="gov-table">
+      <thead>
+        <tr><th>Agent</th><th>Permitted Tools</th><th>Can Write Code</th><th>Can Call GitHub</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>📋 Ticket Analyst</td>  <td>ADO, Jira queries</td>                     <td><span class="pill pill-red">No</span></td>     <td><span class="pill pill-red">No</span></td></tr>
+        <tr><td>🔍 Code Explorer</td>   <td>Filesystem read only</td>                  <td><span class="pill pill-red">No</span></td>     <td><span class="pill pill-red">No</span></td></tr>
+        <tr><td>✏️ Code Writer</td>     <td>Filesystem R/W, shell, GitHub read</td>    <td><span class="pill pill-green">Yes</span></td>  <td><span class="pill pill-blue">Read only</span></td></tr>
+        <tr><td>🧪 Test Writer</td>     <td>Filesystem R/W, shell, GitHub read</td>    <td><span class="pill pill-purple">Tests only</span></td><td><span class="pill pill-blue">Read only</span></td></tr>
+        <tr><td>🚀 PR Crafter</td>      <td>GitHub write, filesystem write</td>         <td><span class="pill pill-green">Yes</span></td>  <td><span class="pill pill-orange">Write</span></td></tr>
+        <tr><td>👁 Code Reviewer</td>   <td>GitHub PR read + comment</td>              <td><span class="pill pill-red">No</span></td>     <td><span class="pill pill-blue">Read only</span></td></tr>
+        <tr><td>🛡 Security Auditor</td><td>Filesystem read, advisories</td>           <td><span class="pill pill-red">No</span></td>     <td><span class="pill pill-blue">Read only</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const AGENTS = [
+  {
+    name: 'Ticket Analyst', icon: '📋', role: 'ticket-analyst', cls: 'ac-ticket',
+    desc: 'Queries ticketing systems (Azure DevOps or Jira) to retrieve ticket status, history, assignee, related PRs, and SLA status. Returns a structured report that downstream agents use to understand scope.',
+    tools: ['ado.query_work_items', 'jira.search_issues'],
+    output: ['ticket_id', 'system', 'title', 'status', 'history', 'related_items', 'suggested_next_steps']
+  },
+  {
+    name: 'Code Explorer', icon: '🔍', role: 'code-explorer', cls: 'ac-explore',
+    desc: 'Searches and reads the codebase to answer "where is X" questions. Traces logic, finds affected files, and returns precise file paths and code snippets. Read-only — never modifies anything.',
+    tools: ['filesystem.list_directory', 'filesystem.read_file'],
+    output: ['query', 'found', 'findings', 'summary', 'related_files']
+  },
+  {
+    name: 'Code Writer', icon: '✏️', role: 'code-writer', cls: 'ac-writer',
+    desc: 'Implements bug fixes and features. Reads existing code, writes the implementation, and writes co-located unit tests. Runs tests via shell to verify everything passes before returning results. Does not open PRs — that is PR Crafter\'s job.',
+    tools: ['filesystem.read_file', 'filesystem.list_directory', 'filesystem.write_file', 'shell.execute', 'github.get_file_contents', 'github.search_code'],
+    output: ['ticket_id', 'files_changed', 'tests_written', 'test_results', 'summary', 'status']
+  },
+  {
+    name: 'Test Writer', icon: '🧪', role: 'test-writer', cls: 'ac-tests',
+    desc: 'Writes integration, acceptance, and end-to-end tests for implemented changes. Tests through public interfaces — never touches implementation files. Runs tests to confirm they pass, and notes any failures that reveal real implementation bugs.',
+    tools: ['filesystem.read_file', 'filesystem.list_directory', 'filesystem.write_file', 'shell.execute', 'github.get_file_contents'],
+    output: ['ticket_id', 'test_files', 'test_count', 'test_results', 'coverage_summary', 'status']
+  },
+  {
+    name: 'PR Crafter', icon: '🚀', role: 'pr-crafter', cls: 'ac-pr',
+    desc: 'Takes a ticket description and the files written by Code Writer and Test Writer, creates a feature branch, commits everything, and opens a pull request with a clear description referencing the original ticket.',
+    tools: ['github.create_branch', 'github.commit', 'github.create_pr', 'filesystem.write_file'],
+    output: ['ticket_id', 'repo', 'branch', 'commits', 'pr_url', 'pr_title', 'status']
+  },
+  {
+    name: 'Code Reviewer', icon: '👁', role: 'code-reviewer', cls: 'ac-review',
+    desc: 'Analyses pull request diffs for bugs, style violations, performance issues, and security risks. Posts inline review comments and returns a structured JSON verdict with per-file findings and an overall approve/reject decision.',
+    tools: ['github.get_pr_diff', 'github.create_review_comment', 'github.get_pr_comments'],
+    output: ['pr_id', 'summary', 'issues', 'approved']
+  },
+  {
+    name: 'Security Auditor', icon: '🛡', role: 'security-auditor', cls: 'ac-security',
+    desc: 'Reads source files and checks known advisory databases to surface security vulnerabilities — injection risks, exposed secrets, missing validation, dependency advisories. Returns severity-ranked findings with remediation suggestions.',
+    tools: ['filesystem.read_file', 'github.get_advisories'],
+    output: ['target', 'summary', 'findings', 'safe', 'total_findings']
+  }
+];
+
+let selected = -1;
+
+function selectAgent(i) {
+  selected = i;
+  document.querySelectorAll('.agent-chip').forEach((c, idx) => c.classList.toggle('selected', idx === i));
+  const a = AGENTS[i];
+  document.getElementById('agent-detail').innerHTML = `
+    <div class="detail-name">${a.icon} ${a.name}</div>
+    <div class="detail-role">${a.role}</div>
+    <div class="detail-desc">${a.desc}</div>
+    <div class="tools-label">Permitted Tools (Toolshed Allowlist)</div>
+    <div class="tool-tags">${a.tools.map(t => `<span class="tool-tag">${t}</span>`).join('')}</div>
+    <div class="tools-label" style="margin-top:14px;">Output Contract Fields</div>
+    <div class="tool-tags">${a.output.map(f => `<span class="tool-tag" style="background:#f0fdf4;border-color:#bbf7d0;color:#15803d;">${f}</span>`).join('')}</div>
+  `;
+}
+
+function show(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelector(`.tab[onclick="show('${page}')"]`).classList.add('active');
+}
+
+document.querySelector('.tab[onclick="show(\'agents\')"]').addEventListener('click', () => {
+  if (selected < 0) selectAgent(0);
+});
+</script>
+</body>
+</html>
