@@ -25,7 +25,7 @@
 | 9 | shellcheck all hook scripts | ✅ Done |
 | 10 | Terraform: Container App secrets, env vars | ✅ Done |
 | 11 | Terraform: ACR, Key Vault secrets, RBAC, scale rules | ✅ Done |
-| 12 | Push branch + open PR | ⬜ Pending |
+| 12 | Push branch + open PR | ✅ Done |
 
 ---
 
@@ -169,9 +169,10 @@ Same changes as Task 7; source user ID is `context.activity.from.id`.
 
 ## Task 12: Push branch + open PR
 
-- [ ] `git push -u origin fix/critical-bugs-2026-06-17`
-- [ ] `gh pr create` with summary of all fixes
-- [ ] Confirm CI gates pass
+- [x] `git push -u origin fix/critical-bugs-2026-06-17`
+- [x] `gh pr create` with summary of all fixes
+- [x] Confirm CI gates pass — all 7 gates green (run 27685568495)
+- [x] PR #10 merged by dr-pabs at 2026-06-17T11:43:53Z
 
 ---
 
