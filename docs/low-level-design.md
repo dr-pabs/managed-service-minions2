@@ -500,6 +500,21 @@ const ALLOWLISTS: &[(&str, &[&str])] = &[
         "filesystem.read_file",
         "github.get_advisories",
     ]),
+    ("code-writer", &[
+        "filesystem.read_file",
+        "filesystem.list_directory",
+        "filesystem.write_file",
+        "shell.execute",
+        "github.get_file_contents",
+        "github.search_code",
+    ]),
+    ("test-writer", &[
+        "filesystem.read_file",
+        "filesystem.list_directory",
+        "filesystem.write_file",
+        "shell.execute",
+        "github.get_file_contents",
+    ]),
 ];
 ```
 
@@ -516,6 +531,8 @@ Token-bucket algorithm, per minion type:
 | pr-crafter | 15 | 1/second |
 | ticket-analyst | 10 | 1/second |
 | security-auditor | 20 | 2/second |
+| code-writer | 15 | 1/second |
+| test-writer | 15 | 1/second |
 
 ### 4.4 Audit Log Format
 
@@ -690,6 +707,8 @@ The orchestrator skill maintains a registry mapping intents to agent files:
 | `security_audit` | `agents/security-auditor.md` | 20 | 10 | `["toolshed"]` |
 | `ticket_lookup` | `agents/ticket-analyst.md` | 10 | 5 | `["toolshed"]` |
 | `ticket_fix_pr` | `agents/pr-crafter.md` | 30 | 15 | `["toolshed"]` |
+| `code_write` | `agents/code-writer.md` | 30 | 15 | `["toolshed"]` |
+| `test_write` | `agents/test-writer.md` | 25 | 10 | `["toolshed"]` |
 | `unknown` | (none) | — | — | — |
 
 ______________________________________________________________________
@@ -1174,7 +1193,7 @@ Phase 1 delivers the **walking skeleton**: one intent (`code_review`), one agent
 | Component | Phase 1 | Phase 2+ |
 |---|---|---|
 | Orchestrator skill | LLM classification, single-minion dispatch | DAG decomposition, parallel dispatch |
-| Agents | `code-reviewer.md` wired; 4 skeleton files | Full implementations for all 5 types |
+| Agents | `code-reviewer.md` wired; 4 skeleton files | Full implementations for all 7 types |
 | Toolshed | GitHub allowlist, rate limiting, stdout logging | Multi-MCP proxy, approval gating, Log Analytics |
 | Bot adapters | Slack (ACP client) | Teams, scheduled triggers |
 | Slash commands | `/review-pr` | `/triage-ticket`, `/security-scan` |

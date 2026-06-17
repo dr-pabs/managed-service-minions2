@@ -62,8 +62,14 @@ prompts/
 ├── ticket-analyst/
 │   ├── v2.0.0.md
 │   └── CHANGELOG.md
-└── security-auditor/
-    ├── v1.1.0.md
+├── security-auditor/
+│   ├── v1.1.0.md
+│   └── CHANGELOG.md
+├── code-writer/
+│   ├── v1.0.0.md
+│   └── CHANGELOG.md
+└── test-writer/
+    ├── v1.0.0.md
     └── CHANGELOG.md
 ```
 

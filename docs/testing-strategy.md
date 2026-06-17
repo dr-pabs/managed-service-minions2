@@ -299,9 +299,17 @@ test-cases/
 │   ├── incident-login-broken.md
 │   ├── incident-login-broken-expected.json
 │   └── ...
-└── security-auditor/
-    ├── auth-module.md
-    ├── auth-module-expected.json
+├── security-auditor/
+│   ├── auth-module.md
+│   ├── auth-module-expected.json
+│   └── ...
+├── code-writer/
+│   ├── fix-null-check.md
+│   ├── fix-null-check-expected.json
+│   └── ...
+└── test-writer/
+    ├── api-integration-coverage.md
+    ├── api-integration-coverage-expected.json
     └── ...
 ```
 
@@ -462,7 +470,9 @@ test/
 │       ├── code-reviewer.schema.test.ts
 │       ├── pr-crafter.schema.test.ts
 │       ├── ticket-analyst.schema.test.ts
-│       └── security-auditor.schema.test.ts
+│       ├── security-auditor.schema.test.ts
+│       ├── code-writer.schema.test.ts
+│       └── test-writer.schema.test.ts
 │
 ├── integration/
 │   ├── pipeline-ticket-fix-pr.test.ts
@@ -477,7 +487,9 @@ test/
 │   │   ├── code-reviewer/
 │   │   ├── pr-crafter/
 │   │   ├── ticket-analyst/
-│   │   └── security-auditor/
+│   │   ├── security-auditor/
+│   │   ├── code-writer/
+│   │   └── test-writer/
 │   └── harness.ts
 │
 ├── e2e/

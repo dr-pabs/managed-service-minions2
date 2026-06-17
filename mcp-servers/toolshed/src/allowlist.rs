@@ -53,6 +53,25 @@ impl AllowlistManager {
             "filesystem.read_file",
             "github.get_advisories",
         ]);
+
+        // Code Writer — write implementation code and unit tests, run them
+        self.insert("code-writer", &[
+            "filesystem.read_file",
+            "filesystem.list_directory",
+            "filesystem.write_file",
+            "shell.execute",
+            "github.get_file_contents",
+            "github.search_code",
+        ]);
+
+        // Test Writer — write integration and E2E tests, run them
+        self.insert("test-writer", &[
+            "filesystem.read_file",
+            "filesystem.list_directory",
+            "filesystem.write_file",
+            "shell.execute",
+            "github.get_file_contents",
+        ]);
     }
 
     fn insert(&mut self, agent: &str, tools: &[&str]) {
@@ -129,5 +148,38 @@ mod tests {
         let am = AllowlistManager::new();
         assert!(!am.is_allowed("code-reviewer", "filesystem.write_file"));
         assert!(!am.is_allowed("code-reviewer", "github.commit"));
+    }
+
+    #[test]
+    fn code_writer_has_write_and_shell_access() {
+        let am = AllowlistManager::new();
+        assert!(am.is_allowed("code-writer", "filesystem.write_file"));
+        assert!(am.is_allowed("code-writer", "filesystem.read_file"));
+        assert!(am.is_allowed("code-writer", "shell.execute"));
+        assert!(am.is_allowed("code-writer", "github.search_code"));
+    }
+
+    #[test]
+    fn code_writer_cannot_create_prs() {
+        let am = AllowlistManager::new();
+        assert!(!am.is_allowed("code-writer", "github.create_pr"));
+        assert!(!am.is_allowed("code-writer", "github.commit"));
+        assert!(!am.is_allowed("code-writer", "github.create_branch"));
+    }
+
+    #[test]
+    fn test_writer_has_write_and_shell_access() {
+        let am = AllowlistManager::new();
+        assert!(am.is_allowed("test-writer", "filesystem.write_file"));
+        assert!(am.is_allowed("test-writer", "filesystem.read_file"));
+        assert!(am.is_allowed("test-writer", "shell.execute"));
+        assert!(am.is_allowed("test-writer", "github.get_file_contents"));
+    }
+
+    #[test]
+    fn test_writer_cannot_search_code_or_create_prs() {
+        let am = AllowlistManager::new();
+        assert!(!am.is_allowed("test-writer", "github.search_code"));
+        assert!(!am.is_allowed("test-writer", "github.create_pr"));
     }
 }

@@ -9,6 +9,8 @@ const ALLOWLISTS = {
   'pr-crafter':       ['github.create_branch', 'github.commit', 'github.create_pr', 'filesystem.write_file'],
   'ticket-analyst':   ['ado.query_work_items', 'jira.search_issues'],
   'security-auditor': ['filesystem.read_file', 'github.get_advisories'],
+  'code-writer':      ['filesystem.read_file', 'filesystem.list_directory', 'filesystem.write_file', 'shell.execute', 'github.get_file_contents', 'github.search_code'],
+  'test-writer':      ['filesystem.read_file', 'filesystem.list_directory', 'filesystem.write_file', 'shell.execute', 'github.get_file_contents'],
 };
 
 const SAFE_ENV_KEYS = [

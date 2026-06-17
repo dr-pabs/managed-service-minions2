@@ -639,7 +639,7 @@ erDiagram
     MinionRun {
         string id PK "corr_uuid.N"
         string session_id FK
-        string minion_type "code-explorer | code-reviewer | pr-crafter | ticket-analyst | security-auditor"
+        string minion_type "code-explorer | code-reviewer | pr-crafter | ticket-analyst | security-auditor | code-writer | test-writer"
         string parent_run_id FK "nullable"
         string instructions
         string status "pending | running | completed | failed | timed_out"
