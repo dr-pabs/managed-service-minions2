@@ -19,6 +19,13 @@ let ws = null;
 let msgId = 0;
 const pending = new Map();
 
+// Per-user session isolation: each Slack user gets their own goose session.
+const sessions = new Map();
+
+// Per-session streaming buffers: accumulate AgentMessageChunk events and
+// resolve the promise that sendToGoose is waiting on when the final chunk arrives.
+const streamingBuffers = new Map();
+
 function connectACP() {
   return new Promise((resolve, reject) => {
     const url = `${GOOSE_URL.replace('http', 'ws')}/acp?token=${GOOSE_SECRET}`;
@@ -38,13 +45,37 @@ function connectACP() {
     ws.on('message', (data) => {
       try {
         const msg = JSON.parse(data.toString());
+
+        // JSON-RPC response to a sendACP call (has an id)
         if (msg.id && pending.has(msg.id)) {
           pending.get(msg.id)(msg);
           pending.delete(msg.id);
-        } else if (msg.method === 'notifications/AgentMessageChunk') {
-          // Streaming response — accumulate
+          return;
+        }
+
+        // Streaming chunk from the agent — accumulate until last=true
+        if (msg.method === 'notifications/AgentMessageChunk') {
           const sid = msg.params?.sessionId;
-          // Store for later collection
+          const buf = streamingBuffers.get(sid);
+          if (!buf) return;
+
+          buf.chunks.push(msg.params?.chunk?.text || '');
+
+          if (msg.params?.last === true) {
+            streamingBuffers.delete(sid);
+            buf.resolve(buf.chunks.join(''));
+          }
+          return;
+        }
+
+        // Fallback completion signal
+        if (msg.method === 'notifications/AgentStatus' && msg.params?.status === 'done') {
+          const sid = msg.params?.sessionId;
+          const buf = streamingBuffers.get(sid);
+          if (buf) {
+            streamingBuffers.delete(sid);
+            buf.resolve(buf.chunks.join(''));
+          }
         }
       } catch (err) {
         console.error('[slack-bot] ACP message parse error:', err.message);
@@ -79,26 +110,41 @@ function sendACP(method, params) {
   });
 }
 
-let sessionId = null;
-
-async function ensureSession() {
-  if (sessionId) return sessionId;
+async function ensureSession(userId) {
+  if (sessions.has(userId)) return sessions.get(userId);
   const result = await sendACP('session/new', {
     sessionId: null,
     cwd: '/tmp',
     mcpServers: []
   });
-  sessionId = result.result.sessionId;
-  console.log(`[slack-bot] Session created: ${sessionId}`);
-  return sessionId;
+  const sid = result.result.sessionId;
+  sessions.set(userId, sid);
+  console.log(`[slack-bot] Session created for user ${userId}: ${sid}`);
+  return sid;
 }
 
 async function sendToGoose(userMessage, userId) {
-  const sid = await ensureSession();
-  return sendACP('session/prompt', {
+  const sid = await ensureSession(userId);
+
+  // Register a streaming buffer before sending the prompt so no chunks are missed.
+  const responsePromise = new Promise((resolve, reject) => {
+    streamingBuffers.set(sid, { chunks: [], resolve, reject });
+    setTimeout(() => {
+      if (streamingBuffers.has(sid)) {
+        streamingBuffers.delete(sid);
+        reject(new Error('Response timeout after 120s'));
+      }
+    }, 120000);
+  });
+
+  // Send the prompt (returns an acknowledgement, not the final answer)
+  await sendACP('session/prompt', {
     sessionId: sid,
     prompt: [{ type: 'user', text: userMessage }]
   });
+
+  // Wait for streaming chunks to complete
+  return responsePromise;
 }
 
 // ── Slack Bot ──────────────────────────────────────────────────────────────
@@ -134,15 +180,12 @@ app.event('message', async ({ event, say }) => {
   } catch (_) {}
 
   try {
-    // Send to goose
+    // Send to goose — keyed on the Slack user ID for session isolation
     const response = await sendToGoose(event.text, event.user);
-
-    // Extract response text
-    const text = extractResponse(response);
 
     // Reply in thread
     await say({
-      text: text || '(no response)',
+      text: response || '(no response)',
       thread_ts: event.ts
     });
 
@@ -164,16 +207,6 @@ app.event('message', async ({ event, say }) => {
     });
   }
 });
-
-function extractResponse(response) {
-  try {
-    // ACP streaming response — last AgentMessageChunk contains the full text
-    if (response?.result?.text) return response.result.text;
-    return JSON.stringify(response, null, 2).slice(0, 3000);
-  } catch (_) {
-    return '(unable to parse response)';
-  }
-}
 
 // ── Startup ────────────────────────────────────────────────────────────────
 
